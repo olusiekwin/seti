@@ -1,0 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium Prediction Market Design System with IBM Plex Mono */
+
+@layer base {
+  :root {
+    /* Core Market Theme - Rich Blacks & Golds */
+    --background: 220 13% 8%;
+    --foreground: 48 100% 96%;
+
+    /* Market Gold Primary */
+    --primary: 45 100% 70%;
+    --primary-foreground: 220 13% 8%;
+
+    /* Neon Green Success */
+    --success: 140 70% 50%;
+    --success-foreground: 220 13% 8%;
+
+    /* Neon Red Danger */
+    --danger: 0 75% 60%;
+    --danger-foreground: 48 100% 96%;
+
+    /* Premium Purple Accent */
+    --accent: 270 70% 65%;
+    --accent-foreground: 48 100% 96%;
+
+    /* Muted Market Elements */
+    --muted: 220 13% 15%;
+    --muted-foreground: 48 20% 70%;
+
+    /* Card & Surface Colors */
+    --card: 220 13% 12%;
+    --card-foreground: 48 100% 96%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 45 100% 70%;
+
+    /* Secondary Elements */
+    --secondary: 220 13% 15%;
+    --secondary-foreground: 48 100% 96%;
+
+    /* Popover Elements */
+    --popover: 220 13% 10%;
+    --popover-foreground: 48 100% 96%;
+
+    /* Destructive Elements */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 48 100% 96%;
+
+    /* Market Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(45, 100%, 70%), hsl(35, 100%, 60%));
+    --gradient-neon: linear-gradient(135deg, hsl(140, 70%, 50%), hsl(160, 70%, 45%));
+    --gradient-purple: linear-gradient(135deg, hsl(270, 70%, 65%), hsl(285, 70%, 55%));
+    --gradient-dark: linear-gradient(180deg, hsl(220, 13%, 12%), hsl(220, 13%, 8%));
+
+    /* Market Glows & Shadows */
+    --glow-gold: 0 0 30px hsl(45, 100%, 70% / 0.3);
+    --glow-success: 0 0 25px hsl(140, 70%, 50% / 0.4);
+    --glow-danger: 0 0 25px hsl(0, 75%, 60% / 0.4);
+    --shadow-elegant: 0 10px 40px -10px hsl(220, 13%, 5% / 0.8);
+    --shadow-market: 0 0 50px hsl(45, 100%, 70% / 0.1);
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    /* Applied IBM Plex Mono font family */
+    @apply bg-background text-foreground;
+    font-family: "IBM Plex Mono", monospace;
+  }
+}
+
+@layer components {
+  /* Market Button Variants */
+  .btn-market-gold {
+    @apply bg-gradient-to-r from-primary to-yellow-400 text-primary-foreground font-bold 
+           shadow-[var(--shadow-elegant)] rounded-xl
+           transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+
+  .btn-market-success {
+    @apply bg-gradient-to-r from-green-500 to-emerald-400 text-black font-bold 
+           shadow-[var(--shadow-elegant)] rounded-xl
+           transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500/50;
+  }
+
+  .btn-market-danger {
+    @apply bg-gradient-to-r from-red-500 to-rose-400 text-foreground font-bold 
+           shadow-[var(--shadow-elegant)] rounded-xl
+           transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500/50;
+  }
+
+  /* Market Card Styles */
+  .market-card {
+    @apply bg-gradient-to-br from-card to-muted border border-border 
+           rounded-2xl p-6 shadow-[var(--shadow-market)] 
+           transition-all duration-200 
+           hover:scale-[1.02] backdrop-blur-sm focus-within:ring-2 focus-within:ring-primary/50;
+  }
+
+  .market-card-glow {
+    @apply relative;
+  }
+
+  /* Typography Styles */
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-primary to-yellow-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-neon {
+    @apply bg-gradient-to-r from-green-400 to-emerald-300 bg-clip-text text-transparent;
+  }
+
+  /* Animation Utilities */
+  .market-pulse {
+    @apply animate-pulse;
+  }
+
+  .market-glow {
+    @apply drop-shadow-[0_0_10px_theme(colors.primary/0.3)];
+  }
+
+  /* Accessibility Improvements */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+  }
+
+  /* Focus Management */
+  .focus-visible {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Better Text Selection */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+}
