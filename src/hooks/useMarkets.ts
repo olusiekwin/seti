@@ -12,10 +12,10 @@ export function useMarkets() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // For now, return sample data for testing with performance charts
       // This will be replaced with actual contract queries once the contract is deployed
-      
+
       // TODO: Implement actual market fetching when contract is deployed
       // Example implementation:
       // const objects = await client.getOwnedObjects({
@@ -25,7 +25,7 @@ export function useMarkets() {
       //     showType: true,
       //   },
       // });
-      
+
       // Sample markets for testing with performance data
       const sampleMarkets: MarketData[] = [
         {
@@ -117,14 +117,32 @@ export function useMarkets() {
           category: 'Economics',
           image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop',
           tags: ['economics', 'recession', 'global-economy']
+        },
+        {
+          id: 'sample-6',
+          question: 'Will Tesla (TSLA) stock reach $400 by end of 2024?',
+          description: 'Market prediction for Tesla stock performance. Price target of $400 per share based on company growth, market conditions, and EV industry trends.',
+          end_time: Math.floor(Date.now() / 1000) + (300 * 24 * 60 * 60), // 300 days from now
+          creator: '0xstock789',
+          resolved: false,
+          winning_outcome: 0,
+          total_liquidity: 100000000000, // 100 SUI
+          outcome_a_shares: 65000000000, // 65 SUI
+          outcome_b_shares: 35000000000, // 35 SUI
+          liquidity_providers: {},
+          volume_24h: 12000000000, // 12 SUI
+          created_timestamp: Math.floor(Date.now() / 1000) - (1 * 24 * 60 * 60), // 1 day ago
+          category: 'Stocks',
+          image_url: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop',
+          tags: ['stocks', 'tesla', 'ev-market', 'price-prediction']
         }
       ];
-      
+
       // Simulate network delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setMarkets(sampleMarkets);
-      
+
     } catch (err) {
       console.error('Error fetching markets:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch markets');
