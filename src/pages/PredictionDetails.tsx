@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { useParams, useNavigate, Link } from "react-router-dom"
 import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle } from "lucide-react"
 import { getPredictionById } from "@/hooks/usePrediction"
+import { useMarket } from "@/hooks/useMarket"
+import { calculatePrices } from "@/types/contract"
+import { MarketChart } from "@/components/MarketChart"
 import { useEffect, useState } from "react"
 import type { Prediction } from "@/hooks/usePrediction"
 
@@ -13,6 +16,10 @@ export default function PredictionDetails() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [prediction, setPrediction] = useState<Prediction | null>(null)
+  // Fetch full market data for this prediction's market (used to render the chart)
+  const marketResult = useMarket(prediction?.marketId ?? "")
+  const market = marketResult.data
+  const prices = market ? calculatePrices(market.outcome_a_shares, market.outcome_b_shares) : { yesPrice: 50, noPrice: 50 }
 
   useEffect(() => {
     if (id) {
@@ -67,13 +74,13 @@ export default function PredictionDetails() {
               </span>
             )}
             {isWon && (
-              <span className="inline-block px-3 py-1 bg-success/20 text-success text-sm font-bold rounded-full border border-success/30 flex items-center gap-1">
+              <span className="inline-flex px-3 py-1 bg-success/20 text-success text-sm font-bold rounded-full border border-success/30 items-center gap-1">
                 <CheckCircle className="w-4 h-4" />
                 WON
               </span>
             )}
             {isLost && (
-              <span className="inline-block px-3 py-1 bg-muted text-muted-foreground text-sm font-bold rounded-full border border-border flex items-center gap-1">
+              <span className="inline-flex px-3 py-1 bg-muted text-muted-foreground text-sm font-bold rounded-full border border-border items-center gap-1">
                 <XCircle className="w-4 h-4" />
                 LOST
               </span>
@@ -98,6 +105,22 @@ export default function PredictionDetails() {
                 <h3 className="text-xl font-bold mb-2">{prediction.marketQuestion}</h3>
                 <p className="text-sm text-muted-foreground">Market ID: {prediction.marketId}</p>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Market Price Chart (only shown on individual market page) */}
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle>Market Price Chart</CardTitle>
+              <CardDescription>24h price movement for this market</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <MarketChart
+                marketId={prediction.marketId}
+                currentYesPrice={prices.yesPrice}
+                currentNoPrice={prices.noPrice}
+                className="w-full"
+              />
             </CardContent>
           </Card>
 
@@ -186,9 +209,8 @@ export default function PredictionDetails() {
                 {prediction.settledAt && (
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        isWon ? "bg-success/20" : "bg-muted"
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${isWon ? "bg-success/20" : "bg-muted"
+                        }`}
                     >
                       {isWon ? (
                         <CheckCircle className="w-5 h-5 text-success" />

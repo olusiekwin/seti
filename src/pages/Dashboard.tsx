@@ -141,7 +141,7 @@ export default function Dashboard() {
                     <h3 className="text-xl font-semibold mb-2">No active positions</h3>
                     <p className="text-muted-foreground mb-6">Start trading to see your positions here</p>
                     <Link to="/">
-                      <Button className="btn-market-gold gap-2">
+                      <Button className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105 gap-2">
                         <Plus className="w-4 h-4" />
                         Browse Markets
                       </Button>
@@ -159,11 +159,10 @@ export default function Dashboard() {
                                   {prediction.marketCategory}
                                 </span>
                                 <span
-                                  className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
-                                    prediction.outcome === "YES"
+                                  className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${prediction.outcome === "YES"
                                       ? "bg-success/20 text-success border border-success/30"
                                       : "bg-danger/20 text-danger border border-danger/30"
-                                  }`}
+                                    }`}
                                 >
                                   {prediction.outcome}
                                 </span>
@@ -222,20 +221,18 @@ export default function Dashboard() {
                                     {prediction.marketCategory}
                                   </span>
                                   <span
-                                    className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
-                                      prediction.outcome === "YES"
+                                    className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${prediction.outcome === "YES"
                                         ? "bg-success/20 text-success border border-success/30"
                                         : "bg-danger/20 text-danger border border-danger/30"
-                                    }`}
+                                      }`}
                                   >
                                     {prediction.outcome}
                                   </span>
                                   <span
-                                    className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
-                                      isWin
+                                    className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${isWin
                                         ? "bg-success/20 text-success border border-success/30"
                                         : "bg-muted text-muted-foreground border border-border"
-                                    }`}
+                                      }`}
                                   >
                                     {isWin ? "WON" : "LOST"}
                                   </span>
