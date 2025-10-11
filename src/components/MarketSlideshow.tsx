@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
-import { MarketChart } from "./MarketChart"
-import { ChevronLeft, ChevronRight, Play, Pause } from "lucide-react"
 import { type Market, calculatePrices, formatTimeRemaining, formatVolume } from "@/types/contract"
 import { usePredictionModal } from "@/hooks/usePredictionModal"
 
@@ -15,6 +13,30 @@ export function MarketSlideshow({ markets }: MarketSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
   const { openModal } = usePredictionModal()
+  const touchStartX = useRef<number | null>(null)
+  const touchEndX = useRef<number | null>(null)
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchEndX.current = null
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX
+  }
+
+  const handleTouchEnd = () => {
+    if (touchStartX.current === null || touchEndX.current === null) return
+    const delta = touchStartX.current - touchEndX.current
+    const threshold = 50 // px
+    if (delta > threshold) {
+      goToNext()
+    } else if (delta < -threshold) {
+      goToPrevious()
+    }
+    touchStartX.current = null
+    touchEndX.current = null
+  }
 
   // Auto-advance slideshow
   useEffect(() => {
@@ -43,15 +65,38 @@ export function MarketSlideshow({ markets }: MarketSlideshowProps) {
     openModal(currentMarket, outcome)
   }
 
+  const [staticMarketData, setStaticMarketData] = useState({
+    yesPrice: 0,
+    noPrice: 0,
+    timeLeft: "",
+    volume: "0"
+  })
+
+  // Set static market data when component mounts or when first market is loaded
+  useEffect(() => {
+    if (markets.length > 0) {
+      const firstMarket = markets[0]
+      const prices = calculatePrices(firstMarket.outcome_a_shares, firstMarket.outcome_b_shares)
+      setStaticMarketData({
+        yesPrice: prices.yesPrice,
+        noPrice: prices.noPrice,
+        timeLeft: formatTimeRemaining(firstMarket.end_time),
+        volume: formatVolume(firstMarket.volume_24h)
+      })
+    }
+  }, [markets])
+
   if (markets.length === 0) return null
 
   const currentMarket = markets[currentIndex]
-  const { yesPrice, noPrice } = calculatePrices(currentMarket.outcome_a_shares, currentMarket.outcome_b_shares)
-  const timeLeft = formatTimeRemaining(currentMarket.end_time)
-  const volume = formatVolume(currentMarket.volume_24h)
 
   return (
-    <section className="relative w-full max-w-7xl h-80 md:h-96 lg:h-[500px] overflow-hidden rounded-2xl bg-gradient-dark mx-auto px-4">
+    <section
+      className="relative w-full max-w-7xl h-[320px] sm:h-[340px] md:h-[360px] overflow-hidden rounded-2xl bg-gradient-dark mx-auto px-4 sm:px-6 md:px-8 py-6"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Background Image */}
       {currentMarket.image_url && (
         <div className="absolute inset-0">
@@ -65,122 +110,98 @@ export function MarketSlideshow({ markets }: MarketSlideshowProps) {
       )}
 
       {/* Content */}
-      <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl">
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col justify-between py-2">
+        <div className="container mx-auto">
+          <div className="max-w-4xl mx-auto">
             {/* Market Category */}
-            <div className="mb-3 md:mb-4">
+            <div className="mb-2">
               <span className="inline-block px-2 md:px-3 py-1 bg-primary/20 text-primary text-xs md:text-sm font-medium rounded-full border border-primary/30">
                 {currentMarket.category}
               </span>
             </div>
 
-            {/* Market Question */}
-            <h1 className="text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-6 leading-tight">
-              <span className="text-gradient-gold font-orbitron">{currentMarket.question}</span>
-            </h1>
+            {/* Content Container with Fixed Height */}
+            <div className="h-[120px] md:h-[140px] overflow-y-auto scrollbar-hide">
+              {/* Market Question */}
+              <h1 className="text-xl md:text-3xl lg:text-4xl font-bold leading-snug mb-2">
+                <span className="text-gradient-gold font-orbitron line-clamp-2">{currentMarket.question}</span>
+              </h1>
 
-            {/* Market Description */}
-            <p className="text-sm md:text-lg lg:text-xl text-muted-foreground mb-6 md:mb-8 max-w-2xl leading-relaxed">
-              {currentMarket.description}
-            </p>
+              {/* Market Description */}
+              <p className="text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed line-clamp-3">
+                {currentMarket.description}
+              </p>
+            </div>
+          </div>
+        </div>
 
-            {/* Market Stats */}
-            <div className="flex flex-wrap items-center gap-4 md:gap-6 lg:gap-8 mb-6 md:mb-8">
-              <div className="flex items-center gap-2">
-                <div className="text-lg md:text-xl lg:text-2xl font-bold text-gradient-gold">
-                  {yesPrice}¢ / {noPrice}¢
-                </div>
-                <div className="text-xs md:text-sm text-muted-foreground">YES / NO</div>
+        {/* Market Stats */}
+        <div className="container mx-auto mt-8 mb-16">
+          <div className="max-w-4xl mx-auto">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 items-center">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <Button
+                  size="sm"
+                  className="btn-market-success text-xs sm:text-sm px-3 py-1.5 transition-all duration-200 hover:scale-105"
+                  onClick={() => handlePredictionClick("YES")}
+                >
+                  Trade YES ({staticMarketData.yesPrice}¢)
+                </Button>
+                <Button
+                  size="sm"
+                  className="btn-market-danger text-xs sm:text-sm px-3 py-1.5 transition-all duration-200 hover:scale-105"
+                  onClick={() => handlePredictionClick("NO")}
+                >
+                  Trade NO ({staticMarketData.noPrice}¢)
+                </Button>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="text-lg md:text-xl lg:text-2xl font-bold text-gradient-neon">${volume}</div>
+              <div className="flex items-center gap-3 justify-center">
+                <div className="text-base md:text-lg lg:text-xl font-bold text-gradient-neon">${staticMarketData.volume}</div>
                 <div className="text-xs md:text-sm text-muted-foreground">24h Volume</div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <div className="text-lg md:text-xl lg:text-2xl font-bold text-accent">{timeLeft}</div>
+              <div className="flex items-center gap-3 justify-center sm:justify-end">
+                <div className="text-base md:text-lg lg:text-xl font-bold text-destructive">{staticMarketData.timeLeft}</div>
                 <div className="text-xs md:text-sm text-muted-foreground">Time Left</div>
               </div>
-            </div>
-
-            {/* Market Chart */}
-            <div className="mb-6 md:mb-8 w-full max-w-2xl mx-auto">
-              <MarketChart
-                marketId={currentMarket.id}
-                currentYesPrice={yesPrice}
-                currentNoPrice={noPrice}
-                className="bg-black/20 backdrop-blur-sm w-full"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4">
-              <Button
-                size="lg"
-                className="btn-market-success text-sm md:text-lg px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-6 w-full sm:w-auto transition-all duration-200 hover:scale-105"
-                onClick={() => handlePredictionClick("YES")}
-              >
-                Trade YES ({yesPrice}¢)
-              </Button>
-              <Button
-                size="lg"
-                className="btn-market-danger text-sm md:text-lg px-4 md:px-6 lg:px-8 py-3 md:py-4 lg:py-6 w-full sm:w-auto transition-all duration-200 hover:scale-105"
-                onClick={() => handlePredictionClick("NO")}
-              >
-                Trade NO ({noPrice}¢)
-              </Button>
             </div>
           </div>
         </div>
       </div>
 
       {/* Navigation Controls */}
-      <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-2 md:gap-4">
-        {/* Play/Pause Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsPlaying(!isPlaying)}
-          className="text-white hover:text-primary w-8 h-8 md:w-10 md:h-10"
-        >
-          {isPlaying ? <Pause className="w-4 h-4 md:w-5 md:h-5" /> : <Play className="w-4 h-4 md:w-5 md:h-5" />}
-        </Button>
-
-        {/* Previous Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={goToPrevious}
-          className="text-white hover:text-primary w-8 h-8 md:w-10 md:h-10"
-        >
-          <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-        </Button>
-
-        {/* Slide Indicators */}
-        <div className="flex gap-1 md:gap-2">
-          {markets.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
-                index === currentIndex ? "bg-primary scale-125" : "bg-white/30 hover:bg-white/50"
+      {/* Slide Indicators */}
+      <div className="absolute bottom-4 md:bottom-6 left-1/2 transform -translate-x-1/2 flex gap-1 md:gap-2 z-20">
+        {markets.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goToSlide(index)}
+            className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-primary scale-125" : "bg-white/30 hover:bg-white/50"
               }`}
-            />
-          ))}
-        </div>
-
-        {/* Next Button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={goToNext}
-          className="text-white hover:text-primary w-8 h-8 md:w-10 md:h-10"
-        >
-          <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-        </Button>
+          />
+        ))}
       </div>
+
+      {/* Left Triangle Navigation */}
+      <button
+        onClick={goToPrevious}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-black/20 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+        aria-label="Previous slide"
+      >
+        <div className="w-0 h-0 border-y-[8px] border-y-transparent border-r-[12px] border-r-white"></div>
+      </button>
+
+      {/* Right Triangle Navigation */}
+      <button
+        onClick={goToNext}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 flex items-center justify-center hover:bg-black/20 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+        aria-label="Next slide"
+      >
+        <div className="w-0 h-0 border-y-[8px] border-y-transparent border-l-[12px] border-l-white"></div>
+      </button>
 
       {/* Market Tags */}
       {currentMarket.tags.length > 0 && (

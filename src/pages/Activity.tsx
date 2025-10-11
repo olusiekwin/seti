@@ -25,7 +25,7 @@ export default function Activity() {
     // Sort by timestamp, newest first
     const sorted = [...predictions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     setAllPredictions(sorted)
-    setTrades(sorted.filter((p) => p.status !== "pending_settlement"))
+    setTrades(sorted.filter((p) => p.status !== "pending"))
   }
 
   if (!isConnected) {
@@ -73,13 +73,13 @@ export default function Activity() {
                 </span>
               )}
               {isWon && (
-                <span className="inline-block px-2 py-0.5 bg-success/20 text-success text-xs font-bold rounded border border-success/30 flex items-center gap-1">
+                <span className="inline-block px-2 py-0.5 bg-success/20 text-success text-xs font-bold rounded border border-success/30 items-center gap-1">
                   <CheckCircle className="w-3 h-3" />
                   WON
                 </span>
               )}
               {isLost && (
-                <span className="inline-block px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded border border-border flex items-center gap-1">
+                <span className="inline-block px-2 py-0.5 bg-muted text-muted-foreground text-xs font-bold rounded border border-border items-center gap-1">
                   <XCircle className="w-3 h-3" />
                   LOST
                 </span>

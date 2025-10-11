@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function MarketCardSkeleton() {
   return (
-    <div className="market-card group p-4 md:p-5 w-full max-w-sm mx-auto h-fit flex flex-col bg-background/50 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg">
+    <div className="market-card group p-4 md:p-5 w-full max-w-sm mx-auto h-[480px] flex flex-col bg-background/50 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg">
       {/* Image Skeleton */}
       <Skeleton className="w-full h-28 md:h-32 mb-3 md:mb-4 rounded-lg" />
 
@@ -38,8 +38,7 @@ export function MarketCardSkeleton() {
         <Skeleton className="h-12 rounded-xl" />
       </div>
 
-      {/* Chart */}
-      <Skeleton className="w-full h-24 mb-3 rounded-lg" />
+      {/* Chart removed from card skeleton */}
 
       {/* Tags */}
       <div className="flex flex-wrap gap-1 mt-auto">

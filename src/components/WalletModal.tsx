@@ -17,7 +17,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     // Check for wallet extensions in the browser
     const checkWallets = () => {
       const walletExtensions = [];
-      
+
       // Always show available wallets, let dapp-kit handle the connection
       walletExtensions.push({
         name: 'Sui Wallet',
@@ -25,14 +25,14 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         installed: true,
         downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil'
       });
-      
+
       walletExtensions.push({
         name: 'Suiet',
         icon: '🔵',
         installed: true,
         downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd'
       });
-      
+
       setDetectedWallets(walletExtensions);
     };
 
@@ -45,11 +45,11 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   const handleWalletSelect = (wallet: any) => {
     // Try to connect with the wallet name
-    const walletToConnect = wallets.find(w => 
+    const walletToConnect = wallets.find(w =>
       w.name.toLowerCase().includes(wallet.name.toLowerCase()) ||
       wallet.name.toLowerCase().includes(w.name.toLowerCase())
     );
-    
+
     if (walletToConnect) {
       connect({ wallet: walletToConnect });
       onClose();
@@ -67,7 +67,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
             <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">
               Connect Wallet
             </h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>
+            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-[hsl(208,65%,75%)] hover:text-background">
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -143,9 +143,9 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </div>
 
           <div className="mt-6 pt-4 border-t border-border/20">
-            <Button 
-              variant="outline" 
-              onClick={onClose} 
+            <Button
+              variant="outline"
+              onClick={onClose}
               className="w-full transition-all duration-200 hover:scale-105"
             >
               Cancel

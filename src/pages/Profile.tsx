@@ -119,7 +119,7 @@ export default function Profile() {
                   <Label htmlFor="bio">Bio (Optional)</Label>
                   <Input id="bio" placeholder="Tell us about yourself" className="bg-muted/30" />
                 </div>
-                <Button className="btn-market-gold">Save Changes</Button>
+                <Button className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105">Save Changes</Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -137,7 +137,7 @@ export default function Profile() {
                     <div className="font-medium">Dark Mode</div>
                     <div className="text-sm text-muted-foreground">Use dark theme</div>
                   </div>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="hover:bg-[hsl(208,65%,75%)] hover:text-background border-[hsl(208,65%,75%)]">
                     Enabled
                   </Button>
                 </div>
