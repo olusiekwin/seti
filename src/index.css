@@ -90,12 +90,16 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
+    max-width: 100%;
   }
 
   body {
     /* Use Helixa as the primary site font; fall back to system sans-serif fonts */
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overflow-x-hidden;
     font-family: 'Helixa', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    width: 100%;
+    position: relative;
   }
 }
 
@@ -154,6 +158,16 @@
 
   .market-glow {
     @apply drop-shadow-[0_0_10px_theme(colors.primary/0.3)];
+  }
+
+  /* Utility to hide scrollbars while maintaining scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
   }
 
   /* Slideshow control triangles (subtle indicators) */

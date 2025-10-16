@@ -1,4 +1,4 @@
-# 🔮 seti — Sui-Native Prediction Markets
+# seti: Native Prediction Markets
 
 <div align="center">
 
