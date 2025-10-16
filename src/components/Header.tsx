@@ -3,8 +3,14 @@
 import { Button } from "@/components/ui/button"
 import { Search, Wallet, Plus, Copy, Check } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount, useBalance, useDisconnect } from 'wagmi'
+import {
+  useCurrentWallet,
+  useConnectWallet,
+  useDisconnectWallet,
+  useWallets,
+  useSuiClient,
+  useAccounts,
+} from "@mysten/dapp-kit"
 import { useState, useEffect } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
 import { WalletModal } from "./WalletModal"
@@ -14,24 +20,83 @@ import { useScroll } from '@/hooks/use-scroll'
 
 export function Header() {
   const location = useLocation()
+  const { currentWallet, isConnected } = useCurrentWallet()
   const { scrollDirection } = useScroll()
+  const accounts = useAccounts()
+  const { mutate: connect } = useConnectWallet()
+  const { mutate: disconnect } = useDisconnectWallet()
+  const wallets = useWallets()
+  const client = useSuiClient()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [balance, setBalance] = useState<string>("0")
   const [copied, setCopied] = useState(false)
-  
-  // Wagmi hooks
-  const { address, isConnected } = useAccount()
-  const { disconnect } = useDisconnect()
-  const { data: balanceData } = useBalance({
-    address: address,
-    watch: true,
-  })
 
-  const balance = balanceData ? parseFloat(balanceData.formatted).toFixed(4) : "0"
+  const currentAccount = accounts?.[0]
+
+  // Auto-connect wallet if available and save connection state
+  useEffect(() => {
+    const autoConnect = async () => {
+      if (!isConnected && wallets.length > 0) {
+        try {
+          // Check if wallet was previously connected
+          const lastConnectedWallet = localStorage.getItem("lastConnectedWallet")
+          if (lastConnectedWallet) {
+            const wallet = wallets.find((w) => w.name === lastConnectedWallet)
+            if (wallet) {
+              connect({ wallet })
+            }
+          }
+        } catch (error) {
+          console.log("Auto-connect failed:", error)
+        }
+      }
+    }
+
+    // Only try auto-connect once when component mounts
+    const timer = setTimeout(autoConnect, 1000)
+    return () => clearTimeout(timer)
+  }, []) // Empty dependency array - only run once
+
+  // Save wallet connection state
+  useEffect(() => {
+    if (isConnected && currentWallet) {
+      localStorage.setItem("lastConnectedWallet", currentWallet.name)
+    } else if (!isConnected) {
+      localStorage.removeItem("lastConnectedWallet")
+    }
+  }, [isConnected, currentWallet])
+
+  // Fetch wallet balance
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (currentAccount?.address) {
+        try {
+          const coins = await client.getCoins({
+            owner: currentAccount.address,
+            coinType: "0x2::sui::SUI",
+          })
+
+          const totalBalance = coins.data.reduce((sum, coin) => {
+            return sum + Number.parseInt(coin.balance)
+          }, 0)
+
+          // Convert from MIST to SUI (1 SUI = 1,000,000,000 MIST)
+          const suiBalance = (totalBalance / 1_000_000_000).toFixed(4)
+          setBalance(suiBalance)
+        } catch (error) {
+          console.error("Error fetching balance:", error)
+          setBalance("0")
+        }
+      }
+    }
+
+    fetchBalance()
+  }, [currentAccount?.address, client])
 
   const copyAddress = async () => {
-    if (address) {
-      await navigator.clipboard.writeText(address)
+    if (currentAccount?.address) {
+      await navigator.clipboard.writeText(currentAccount.address)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
@@ -109,7 +174,7 @@ export function Header() {
 
           {/* Wallet Connection */}
           <div className="flex items-center gap-2 lg:gap-3">
-            {isConnected && address ? (
+            {isConnected && currentWallet && currentAccount ? (
               <>
                 <Button
                   variant="outline"
@@ -125,9 +190,7 @@ export function Header() {
                 {/* Balance Display */}
                 <div className="hidden sm:flex items-center gap-2 px-2 lg:px-3 py-2 bg-muted/30 rounded-xl border border-border/50">
                   <Wallet className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-primary">
-                    {balanceData?.symbol ? `${balance} ${balanceData.symbol}` : `${balance} ETH`}
-                  </span>
+                  <span className="text-sm font-medium text-primary">${balance}</span>
                 </div>
 
                 {/* Address Display */}
@@ -138,7 +201,7 @@ export function Header() {
                   onClick={copyAddress}
                 >
                   <span className="text-xs lg:text-sm font-mono">
-                    {address.slice(0, 4)}...{address.slice(-4)}
+                    {currentAccount.address.slice(0, 4)}...{currentAccount.address.slice(-4)}
                   </span>
                   {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                 </Button>
@@ -153,18 +216,14 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <ConnectButton.Custom>
-                {({ openConnectModal }) => (
-                  <Button
-                    className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105"
-                    onClick={openConnectModal}
-                  >
-                    <Wallet className="w-4 h-4 mr-1 lg:mr-2" />
-                    <span className="hidden sm:inline">Connect Wallet</span>
-                    <span className="sm:hidden">Connect</span>
-                  </Button>
-                )}
-              </ConnectButton.Custom>
+              <Button
+                className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105"
+                onClick={() => setIsWalletModalOpen(true)}
+              >
+                <Wallet className="w-4 h-4 mr-1 lg:mr-2" />
+                <span className="hidden sm:inline">Connect Wallet</span>
+                <span className="sm:hidden">Connect</span>
+              </Button>
             )}
           </div>
         </div>

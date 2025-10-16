@@ -29,8 +29,8 @@ export function MarketCard({ market, trending }: MarketCardProps) {
   }
 
   return (
-    <div className="market-card group p-4 w-full max-w-sm mx-auto min-h-[120px] flex flex-col bg-[hsl(222,47%,11%)] border border-[hsl(220,13%,18%)] rounded-lg transition-all duration-300 hover:border-[hsl(270,70%,65%,0.3)]">
-      {/* Content Container */}
+    <div className="market-card group p-4 md:p-4 w-full max-w-sm mx-auto min-h-[120px] md:min-h-[140px] flex flex-col bg-[hsl(222,47%,11%)] border border-[hsl(220,13%,18%)] rounded-lg transition-all duration-300 hover:border-[hsl(270,70%,65%,0.3)]">
+      {/* Content Container - Flex row on mobile, column on desktop */}
       <div className="flex flex-1 gap-2">
         {/* Left: Question */}
         <div className="flex-1 min-w-0 pr-2">
@@ -39,9 +39,9 @@ export function MarketCard({ market, trending }: MarketCardProps) {
           </h3>
         </div>
 
-        {/* Right: Controls */}
-        <div className="flex flex-col items-end justify-center gap-1.5 shrink-0">
-          {/* Buttons */}
+        {/* Mobile Controls (right-aligned) - Only visible on mobile */}
+        <div className="flex md:hidden flex-col items-end justify-center gap-1.5 shrink-0">
+          {/* Mobile Buttons */}
           <div className="w-[90px]">
             <Button
               className="w-full h-7 px-3 flex items-center justify-between bg-[hsl(143,97%,40%)] hover:bg-[hsl(143,97%,35%)] text-[11px] text-black rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -64,8 +64,31 @@ export function MarketCard({ market, trending }: MarketCardProps) {
         </div>
       </div>
 
+      {/* Desktop Controls (bottom-aligned) - Only visible on desktop */}
+      <div className="hidden md:flex justify-between items-center mt-2 pt-2 border-t border-white/10">
+        {/* Yes button on the left */}
+        <Button
+          className="w-[45%] h-9 px-4 flex items-center justify-between bg-[hsl(143,97%,40%)] hover:bg-[hsl(143,97%,35%)] text-sm font-medium text-black rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={market.resolved}
+          onClick={() => handlePredictionClick("YES")}
+        >
+          <span>Yes</span>
+          <span className="opacity-80">{yesPrice}%</span>
+        </Button>
+
+        {/* No button on the right */}
+        <Button
+          className="w-[45%] h-9 px-4 flex items-center justify-between bg-[hsl(0,95%,47%)] hover:bg-[hsl(0,95%,42%)] text-sm font-medium text-white/90 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={market.resolved}
+          onClick={() => handlePredictionClick("NO")}
+        >
+          <span>No</span>
+          <span className="opacity-80">{noPrice}%</span>
+        </Button>
+      </div>
+
       {/* Bottom Stats */}
-      <div className="grid grid-cols-3 gap-4 text-[11px] mt-4 pt-4 border-t border-white/10">
+      <div className="grid grid-cols-3 gap-4 text-[11px] mt-3 pt-3 md:mt-3 md:pt-3 border-t border-white/10">
         <div className="flex flex-col">
           <span className="text-white/40">Volume 24h</span>
           <span className="text-white/90">${volume}</span>

@@ -60,138 +60,28 @@ const Index = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background overflow-x-hidden">
         {/* Main Markets Section */}
-        <section className="py-4 w-full">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <Tabs defaultValue="all" className="w-full mb-6 md:mb-8" onValueChange={setActiveTab}>
-              <TabsList className="w-full bg-muted/30 border border-border/50 flex h-9">
-                <div className="flex items-center border-r border-border/20">
-                  <TabsTrigger value="trending" className="text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-3 transition-colors">
-                    Trending
-                  </TabsTrigger>
-                  <TabsTrigger value="breaking" className="text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-3 transition-colors">
-                    Breaking
-                  </TabsTrigger>
-                  <TabsTrigger value="new" className="text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-3 transition-colors">
-                    New
-                  </TabsTrigger>
-                </div>
-
-                <div className="text-white/20 flex items-center px-4">|</div>
-
-                <div className="flex flex-1">
-                  <TabsTrigger value="all" className="flex-1 text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-2 transition-colors">
+        <section className="py-4 w-full overflow-x-hidden">
+          <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
+            <Tabs defaultValue="all" className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
+              <TabsList className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10">
+                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full justify-between">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
                     All Markets
                   </TabsTrigger>
-                  <TabsTrigger value="crypto" className="flex-1 text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-2 transition-colors">
+                  <TabsTrigger value="crypto" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
                     Crypto
                   </TabsTrigger>
-                  <TabsTrigger value="stocks" className="flex-1 text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-2 transition-colors">
-                    Stocks
-                  </TabsTrigger>
-                  <TabsTrigger value="sports" className="flex-1 text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-2 transition-colors">
+                  <TabsTrigger value="sports" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
                     Sports
-                  </TabsTrigger>
-                  <TabsTrigger value="politics" className="flex-1 text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-2 transition-colors">
-                    Politics
                   </TabsTrigger>
                 </div>
               </TabsList>
 
-              <TabsContent value="trending" className="mt-8">
-                {isLoading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[...Array(8)].map((_, index) => (
-                      <MarketCardSkeleton key={index} />
-                    ))}
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-12">
-                    <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={refetch} className="rounded-xl bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background">
-                      Try Again
-                    </Button>
-                  </div>
-                ) : filteredMarkets.length === 0 ? (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-semibold mb-2">No trending markets</h3>
-                    <p className="text-muted-foreground">Check back later for trending markets</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {filteredMarkets.map((market, index) => (
-                      <MarketCard
-                        key={market.id}
-                        market={market}
-                        trending="up"
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
 
-              <TabsContent value="breaking" className="mt-8">
-                {isLoading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[...Array(8)].map((_, index) => (
-                      <MarketCardSkeleton key={index} />
-                    ))}
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-12">
-                    <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={refetch} className="rounded-xl bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background">
-                      Try Again
-                    </Button>
-                  </div>
-                ) : filteredMarkets.length === 0 ? (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-semibold mb-2">No breaking markets</h3>
-                    <p className="text-muted-foreground">Check back later for breaking markets</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {filteredMarkets.map((market, index) => (
-                      <MarketCard
-                        key={market.id}
-                        market={market}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
 
-              <TabsContent value="new" className="mt-8">
-                {isLoading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                    {[...Array(8)].map((_, index) => (
-                      <MarketCardSkeleton key={index} />
-                    ))}
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-12">
-                    <p className="text-destructive mb-4">{error}</p>
-                    <Button onClick={refetch} className="rounded-xl">
-                      Try Again
-                    </Button>
-                  </div>
-                ) : filteredMarkets.length === 0 ? (
-                  <div className="text-center py-12">
-                    <h3 className="text-xl font-semibold mb-2">No new markets</h3>
-                    <p className="text-muted-foreground">Check back later for new markets</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                    {filteredMarkets.map((market, index) => (
-                      <MarketCard
-                        key={market.id}
-                        market={market}
-                      />
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
+
 
               <TabsContent value="all" className="mt-8">
                 {isLoading ? (

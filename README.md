@@ -78,8 +78,9 @@ npm run dev
 ### Environment Setup
 Edit `.env.local`:
 ```env
-# For EVM wallet connections
-VITE_WALLET_CONNECT_PROJECT_ID=YOUR_PROJECT_ID_HERE  # Get from https://cloud.walletconnect.com
+VITE_SUI_PACKAGE_ID=0x0
+VITE_NETWORK=devnet
+VITE_SUI_RPC_URL=https://fullnode.devnet.sui.io:443
 ```
 
 ## 🏗️ Architecture
