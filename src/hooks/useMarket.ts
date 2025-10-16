@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSuiClient } from '@mysten/dapp-kit';
 import { SuiObjectData } from '@mysten/sui/client';
 import { MarketData, UseMarketResult, PACKAGE_ID, MODULE } from '@/types/contract';
+import { marketsApi } from '@/services/api';
 
 /**
  * Hook to fetch a single market by ID
+ * Fetches from backend first (fast), falls back to blockchain if needed
  */
 export function useMarket(marketId: string): UseMarketResult {
   const client = useSuiClient();
@@ -22,7 +24,36 @@ export function useMarket(marketId: string): UseMarketResult {
     setError(null);
 
     try {
-      // First try to get the object directly
+      // Try backend first (faster)
+      try {
+        const response = await marketsApi.getById(marketId);
+        if (response.market) {
+          const market = response.market;
+          setData({
+            id: market.id,
+            question: market.question,
+            description: market.description,
+            end_time: market.end_time,
+            creator: market.creator,
+            resolved: market.resolved,
+            winning_outcome: market.winning_outcome,
+            total_liquidity: market.total_liquidity,
+            outcome_a_shares: market.outcome_a_shares,
+            outcome_b_shares: market.outcome_b_shares,
+            liquidity_providers: market.liquidity_providers || {},
+            volume_24h: market.volume_24h,
+            created_timestamp: market.created_timestamp,
+            category: market.category,
+            image_url: market.image_url || 'https://images.unsplash.com/photo-1518546305927-5a555bb7020d?w=400&h=300&fit=crop',
+            tags: market.tags || [],
+          });
+          return;
+        }
+      } catch (backendError) {
+        console.log('Backend fetch failed, trying blockchain...', backendError);
+      }
+
+      // Fallback to blockchain
       const object = await client.getObject({
         id: marketId,
         options: {
