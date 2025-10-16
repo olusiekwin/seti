@@ -13,8 +13,15 @@ import Profile from "./pages/Profile"
 import PredictionDetails from "./pages/PredictionDetails"
 import { PredictionModalProvider } from "./contexts/PredictionModalContext"
 import { PredictionSettlement } from "./components/PredictionSettlement"
+import { useAutoCreateUser } from "./hooks/useAutoCreateUser"
 
 const queryClient = new QueryClient()
+
+// Component to auto-create user when wallet connects
+function AutoCreateUser() {
+  useAutoCreateUser()
+  return null
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -29,6 +36,7 @@ const App = () => (
       <WalletProvider autoConnect={true}>
         <PredictionModalProvider>
           <TooltipProvider>
+            <AutoCreateUser />
             <Toaster />
             <Sonner />
             <PredictionSettlement />
