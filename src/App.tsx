@@ -24,9 +24,9 @@ const App = () => (
         testnet: { url: getFullnodeUrl("testnet") },
         mainnet: { url: getFullnodeUrl("mainnet") },
       }}
-      defaultNetwork={(import.meta as any).env?.VITE_SUI_NETWORK || "testnet"}
+      defaultNetwork={(import.meta as any).env?.VITE_SUI_NETWORK || "devnet"}
     >
-      <WalletProvider>
+      <WalletProvider autoConnect={true}>
         <PredictionModalProvider>
           <TooltipProvider>
             <Toaster />

@@ -14,48 +14,95 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const [detectedWallets, setDetectedWallets] = useState<any[]>([]);
 
   useEffect(() => {
-    // Check for wallet extensions in the browser
-    const checkWallets = () => {
-      const walletExtensions = [];
-
-      // Always show available wallets, let dapp-kit handle the connection
-      walletExtensions.push({
-        name: 'Sui Wallet',
-        icon: '🟡',
-        installed: true,
-        downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil'
-      });
-
-      walletExtensions.push({
-        name: 'Suiet',
-        icon: '🔵',
-        installed: true,
-        downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd'
-      });
-
-      setDetectedWallets(walletExtensions);
-    };
-
+    // Show all wallets detected by dapp-kit
     if (isOpen) {
-      checkWallets();
+      console.log('Available wallets from dapp-kit:', wallets.map(w => ({
+        name: w.name,
+        features: w.features,
+        version: w.version
+      })));
+      
+      // Map wallets to UI format
+      const walletList = wallets.map(w => ({
+        name: w.name,
+        icon: getWalletIcon(w.name),
+        installed: true,
+        wallet: w
+      }));
+      
+      // If no wallets detected, show install options
+      if (walletList.length === 0) {
+        walletList.push(
+          {
+            name: 'Sui Wallet',
+            icon: '🟡',
+            installed: false,
+            downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil'
+          },
+          {
+            name: 'Suiet',
+            icon: '🔵',
+            installed: false,
+            downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd'
+          },
+          {
+            name: 'Ethos',
+            icon: '⚪',
+            installed: false,
+            downloadUrl: 'https://chrome.google.com/webstore/detail/ethos-sui-wallet/mcbigmjiafegjnnogedioegffbooigli'
+          }
+        );
+      }
+      
+      setDetectedWallets(walletList);
     }
-  }, [isOpen]);
+  }, [isOpen, wallets]);
+  
+  const getWalletIcon = (name: string): string => {
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes('sui wallet')) return '🟡';
+    if (nameLower.includes('suiet')) return '🔵';
+    if (nameLower.includes('ethos')) return '⚪';
+    if (nameLower.includes('martian')) return '🔴';
+    if (nameLower.includes('glass')) return '💎';
+    if (nameLower.includes('morphis')) return '🟣';
+    return '💼';
+  };
 
   if (!isOpen) return null;
 
   const handleWalletSelect = (wallet: any) => {
-    // Try to connect with the wallet name
-    const walletToConnect = wallets.find(w =>
-      w.name.toLowerCase().includes(wallet.name.toLowerCase()) ||
-      wallet.name.toLowerCase().includes(w.name.toLowerCase())
-    );
-
-    if (walletToConnect) {
-      connect({ wallet: walletToConnect });
-      onClose();
-    } else {
-      // If no matching wallet found, show install options
+    // If wallet object is provided directly (from dapp-kit)
+    if (wallet.wallet) {
+      console.log('Connecting to wallet:', wallet.wallet.name);
+      connect(
+        { wallet: wallet.wallet },
+        {
+          onSuccess: () => {
+            console.log('✅ Wallet connected successfully!');
+            localStorage.setItem('lastConnectedWallet', wallet.wallet.name);
+            onClose();
+          },
+          onError: (error) => {
+            console.error('❌ Wallet connection failed:', error);
+            alert(`Failed to connect to ${wallet.wallet.name}. Please try again or check if the wallet extension is unlocked.`);
+          }
+        }
+      );
+      return;
+    }
+    
+    // For install options (wallet not detected)
+    if (wallet.downloadUrl && !wallet.installed) {
       window.open(wallet.downloadUrl, '_blank');
+      return;
+    }
+    
+    // Fallback: try to find any wallet
+    if (wallets.length > 0) {
+      console.log('Attempting to connect to first available wallet:', wallets[0].name);
+      connect({ wallet: wallets[0] });
+      onClose();
     }
   };
 
