@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { SuiClientProvider, WalletProvider } from "@mysten/dapp-kit"
-import { getFullnodeUrl } from "@mysten/sui/client"
+import { RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { WagmiProvider } from 'wagmi';
 import Index from "./pages/Index"
 import NotFound from "./pages/NotFound"
 import Dashboard from "./pages/Dashboard"
@@ -13,20 +13,15 @@ import Profile from "./pages/Profile"
 import PredictionDetails from "./pages/PredictionDetails"
 import { PredictionModalProvider } from "./contexts/PredictionModalContext"
 import { PredictionSettlement } from "./components/PredictionSettlement"
+import '@rainbow-me/rainbowkit/styles.css';
+import { config } from './lib/wallet';
 
 const queryClient = new QueryClient()
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SuiClientProvider
-      networks={{
-        devnet: { url: getFullnodeUrl("devnet") },
-        testnet: { url: getFullnodeUrl("testnet") },
-        mainnet: { url: getFullnodeUrl("mainnet") },
-      }}
-      defaultNetwork={(import.meta as any).env?.VITE_SUI_NETWORK || "testnet"}
-    >
-      <WalletProvider>
+    <WagmiProvider config={config}>
+      <RainbowKitProvider>
         <PredictionModalProvider>
           <TooltipProvider>
             <Toaster />
@@ -49,8 +44,8 @@ const App = () => (
             </BrowserRouter>
           </TooltipProvider>
         </PredictionModalProvider>
-      </WalletProvider>
-    </SuiClientProvider>
+      </RainbowKitProvider>
+    </WagmiProvider>
   </QueryClientProvider>
 )
 
