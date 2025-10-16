@@ -5,16 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, DollarSign, Activity, BarChart3, Plus, Clock, TrendingDown } from "lucide-react"
-import { useCurrentWallet } from "@mysten/dapp-kit"
+import { useCurrentWallet, useCurrentAccount } from "@mysten/dapp-kit"
 import { Link } from "react-router-dom"
-import { getActivePredictions, getClosedPredictions, calculatePredictionStats } from "@/hooks/usePrediction"
 import { useEffect, useState } from "react"
-import type { Prediction } from "@/hooks/usePrediction"
+import { useUserPredictions } from "@/hooks/useUserPredictions"
+import { usersApi } from "@/services/api"
 
 export default function Dashboard() {
   const { isConnected } = useCurrentWallet()
-  const [activePredictions, setActivePredictions] = useState<Prediction[]>([])
-  const [closedPredictions, setClosedPredictions] = useState<Prediction[]>([])
+  const currentAccount = useCurrentAccount()
+  const { predictions, isLoading: loadingPredictions } = useUserPredictions(currentAccount?.address)
+  
   const [stats, setStats] = useState({
     totalInvested: 0,
     totalPayout: 0,
@@ -28,20 +29,37 @@ export default function Dashboard() {
   })
 
   useEffect(() => {
-    if (isConnected) {
-      loadPredictions()
+    if (currentAccount?.address) {
+      loadStats()
     }
-  }, [isConnected])
+  }, [currentAccount?.address])
 
-  const loadPredictions = () => {
-    const active = getActivePredictions()
-    const closed = getClosedPredictions()
-    const calculatedStats = calculatePredictionStats()
-
-    setActivePredictions(active)
-    setClosedPredictions(closed)
-    setStats(calculatedStats)
+  const loadStats = async () => {
+    if (!currentAccount?.address) return
+    
+    try {
+      const response = await usersApi.getStats(currentAccount.address)
+      if (response.stats) {
+        setStats({
+          totalInvested: response.stats.total_volume / 1000000000,
+          totalPayout: 0, // TODO: Calculate from won predictions
+          totalProfit: response.stats.total_pnl / 1000000000,
+          wins: response.stats.wins,
+          losses: response.stats.losses,
+          winRate: response.stats.win_rate,
+          activePositions: response.stats.total_predictions,
+          closedPositions: response.stats.wins + response.stats.losses,
+          activeValue: response.stats.total_volume / 1000000000,
+        })
+      }
+    } catch (error) {
+      console.error('Error loading stats:', error)
+    }
   }
+  
+  // Split predictions into active and closed
+  const activePredictions = predictions.filter(p => p.market && !p.market.resolved)
+  const closedPredictions = predictions.filter(p => p.market && p.market.resolved)
 
   if (!isConnected) {
     return (
@@ -156,30 +174,30 @@ export default function Dashboard() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className="inline-block px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded border border-primary/30">
-                                  {prediction.marketCategory}
+                                  {prediction.market?.category || 'Unknown'}
                                 </span>
                                 <span
-                                  className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${prediction.outcome === "YES"
+                                  className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${prediction.outcome_label === "YES"
                                       ? "bg-success/20 text-success border border-success/30"
                                       : "bg-danger/20 text-danger border border-danger/30"
                                     }`}
                                 >
-                                  {prediction.outcome}
+                                  {prediction.outcome_label}
                                 </span>
                               </div>
-                              <h4 className="font-semibold text-sm mb-1 line-clamp-2">{prediction.marketQuestion}</h4>
+                              <h4 className="font-semibold text-sm mb-1 line-clamp-2">{prediction.market?.question || 'Market data unavailable'}</h4>
                               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" />
-                                  {new Date(prediction.timestamp).toLocaleDateString()}
+                                  {new Date(prediction.timestamp * 1000).toLocaleDateString()}
                                 </span>
-                                <span>Price: {prediction.price}¢</span>
+                                <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} SUI</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} SUI</div>
+                              <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
                               <div className="text-xs text-muted-foreground">
-                                Potential: {prediction.potentialPayout.toFixed(2)} SUI
+                                Shares: {(prediction.shares / 1000000000).toFixed(2)}
                               </div>
                             </div>
                           </div>

@@ -23,21 +23,20 @@ export function PredictionSettlement() {
   const checkAndSettlePredictions = () => {
     const activePredictions = getActivePredictions()
 
-    // Simulate settlement for demo purposes
-    // In production, this would check actual market outcomes from the blockchain
-    activePredictions.forEach((prediction) => {
-      // Randomly settle some predictions for demo (10% chance per check)
-      if (Math.random() < 0.1) {
-        const won = Math.random() > 0.5 // 50% win rate for demo
-        const actualPayout = won ? prediction.potentialPayout : 0
-
-        settlePrediction(prediction.id, won, actualPayout)
-
-        console.log(`[Settlement] Prediction ${prediction.id} settled:`, {
-          won,
-          actualPayout,
-          market: prediction.marketQuestion,
-        })
+    // Check actual market outcomes from the blockchain
+    activePredictions.forEach(async (prediction) => {
+      try {
+        // TODO: Query blockchain to check if market is resolved
+        // const marketData = await fetchMarketFromBlockchain(prediction.marketId);
+        // if (marketData.resolved) {
+        //   const won = marketData.winning_outcome === prediction.outcome;
+        //   const actualPayout = won ? prediction.potentialPayout : 0;
+        //   settlePrediction(prediction.id, won, actualPayout);
+        // }
+        
+        // For now, this component is disabled until blockchain integration is complete
+      } catch (error) {
+        console.error('Error checking settlement:', error);
       }
     })
   }

@@ -31,53 +31,47 @@ export function MarketChart({ marketId, currentYesPrice, currentNoPrice, classNa
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Generate sample chart data (in real app, this would come from API)
+  // Fetch real chart data from backend API
   useEffect(() => {
-    const generateSampleData = () => {
-      const data: ChartDataPoint[] = [];
-      const now = Date.now();
-      const baseYesPrice = currentYesPrice;
-      const baseNoPrice = currentNoPrice;
+    const fetchChartData = async () => {
+      setIsLoading(true);
       
-      // Generate 24 hours of hourly data
-      for (let i = 23; i >= 0; i--) {
-        const timestamp = now - (i * 60 * 60 * 1000);
-        const time = new Date(timestamp);
+      try {
+        // TODO: Add price history endpoint to backend
+        // For now, create a single current price point
+        const now = Date.now();
+        const data: ChartDataPoint[] = [];
         
-        // Add some realistic price movement
-        const yesVariation = (Math.random() - 0.5) * 10; // ±5¢ variation
-        const noVariation = (Math.random() - 0.5) * 10;
-        
-        const yesPrice = Math.max(5, Math.min(95, baseYesPrice + yesVariation));
-        const noPrice = Math.max(5, Math.min(95, baseNoPrice + noVariation));
-        
-        // Ensure YES + NO = 100¢
-        const total = yesPrice + noPrice;
-        const adjustedYesPrice = (yesPrice / total) * 100;
-        const adjustedNoPrice = (noPrice / total) * 100;
-        
+        // Show current price as a starting point
         data.push({
-          time: time.toLocaleTimeString('en-US', { 
+          time: new Date(now).toLocaleTimeString('en-US', { 
             hour: '2-digit', 
             minute: '2-digit',
             hour12: false 
           }),
-          yesPrice: Number(adjustedYesPrice.toFixed(1)),
-          noPrice: Number(adjustedNoPrice.toFixed(1)),
-          volume: Math.random() * 1000 + 100, // Random volume
-          timestamp
+          yesPrice: currentYesPrice,
+          noPrice: currentNoPrice,
+          volume: 0,
+          timestamp: now
         });
+        
+        setChartData(data);
+      } catch (err) {
+        console.error('Error fetching chart data:', err);
+        // Fallback to current prices
+        setChartData([{
+          time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+          yesPrice: currentYesPrice,
+          noPrice: currentNoPrice,
+          volume: 0,
+          timestamp: Date.now()
+        }]);
+      } finally {
+        setIsLoading(false);
       }
-      
-      return data;
     };
 
-    setIsLoading(true);
-    // Simulate API delay
-    setTimeout(() => {
-      setChartData(generateSampleData());
-      setIsLoading(false);
-    }, 500);
+    fetchChartData();
   }, [marketId, currentYesPrice, currentNoPrice]);
 
   if (isLoading) {

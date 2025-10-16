@@ -4,29 +4,18 @@ import { Layout } from "@/components/Layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Clock, DollarSign, CheckCircle, XCircle } from "lucide-react"
-import { useCurrentWallet } from "@mysten/dapp-kit"
+import { useCurrentWallet, useCurrentAccount } from "@mysten/dapp-kit"
 import { Button } from "@/components/ui/button"
-import { getPredictions, type Prediction } from "@/hooks/usePrediction"
-import { useEffect, useState } from "react"
+import { useUserPredictions } from "@/hooks/useUserPredictions"
 
 export default function Activity() {
   const { isConnected } = useCurrentWallet()
-  const [allPredictions, setAllPredictions] = useState<Prediction[]>([])
-  const [trades, setTrades] = useState<Prediction[]>([])
-
-  useEffect(() => {
-    if (isConnected) {
-      loadActivity()
-    }
-  }, [isConnected])
-
-  const loadActivity = () => {
-    const predictions = getPredictions()
-    // Sort by timestamp, newest first
-    const sorted = [...predictions].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    setAllPredictions(sorted)
-    setTrades(sorted.filter((p) => p.status !== "pending"))
-  }
+  const currentAccount = useCurrentAccount()
+  const { predictions, isLoading } = useUserPredictions(currentAccount?.address)
+  
+  // All predictions are fetched from Supabase via backend
+  const allPredictions = predictions
+  const trades = predictions // All predictions are trades
 
   if (!isConnected) {
     return (
@@ -42,10 +31,11 @@ export default function Activity() {
     )
   }
 
-  const renderPredictionItem = (prediction: Prediction) => {
-    const isActive = prediction.status === "active"
-    const isWon = prediction.status === "won"
-    const isLost = prediction.status === "lost"
+  const renderPredictionItem = (prediction: any) => {
+    const isResolved = prediction.market?.resolved || false
+    const isWon = isResolved && prediction.market?.winning_outcome === prediction.outcome
+    const isLost = isResolved && prediction.market?.winning_outcome !== prediction.outcome
+    const isActive = !isResolved
 
     return (
       <div
@@ -56,16 +46,16 @@ export default function Activity() {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="inline-block px-2 py-0.5 bg-primary/20 text-primary text-xs font-medium rounded border border-primary/30">
-                {prediction.marketCategory}
+                {prediction.market?.category || 'Unknown'}
               </span>
               <span
                 className={`inline-block px-2 py-0.5 text-xs font-bold rounded ${
-                  prediction.outcome === "YES"
+                  prediction.outcome_label === "YES"
                     ? "bg-success/20 text-success border border-success/30"
                     : "bg-danger/20 text-danger border border-danger/30"
                 }`}
               >
-                {prediction.outcome}
+                {prediction.outcome_label}
               </span>
               {isActive && (
                 <span className="inline-block px-2 py-0.5 bg-blue-500/20 text-blue-400 text-xs font-medium rounded border border-blue-500/30">
@@ -85,27 +75,27 @@ export default function Activity() {
                 </span>
               )}
             </div>
-            <h4 className="font-semibold text-sm mb-2 line-clamp-2">{prediction.marketQuestion}</h4>
+            <h4 className="font-semibold text-sm mb-2 line-clamp-2">{prediction.market?.question || 'Market data unavailable'}</h4>
             <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {new Date(prediction.timestamp).toLocaleString()}
+                {new Date(prediction.timestamp * 1000).toLocaleString()}
               </span>
-              <span>Price: {prediction.price}¢</span>
-              {!isActive && prediction.settledAt && (
-                <span>Settled: {new Date(prediction.settledAt).toLocaleDateString()}</span>
+              <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} SUI</span>
+              {isResolved && prediction.created_at && (
+                <span>Date: {new Date(prediction.created_at).toLocaleDateString()}</span>
               )}
             </div>
           </div>
           <div className="text-right">
-            <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} SUI</div>
+            <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
             {isActive ? (
               <div className="text-xs text-muted-foreground">
-                Potential: {prediction.potentialPayout.toFixed(2)} SUI
+                {prediction.outcome_label} @ {(prediction.price / 1000000000).toFixed(2)}
               </div>
             ) : (
               <div className={`text-xs font-semibold ${isWon ? "text-success" : "text-muted-foreground"}`}>
-                {isWon ? `+${((prediction.actualPayout || 0) - prediction.amount).toFixed(2)}` : "0.00"} SUI
+                {isWon ? "WON" : "LOST"}
               </div>
             )}
           </div>

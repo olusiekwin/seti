@@ -140,33 +140,7 @@ export function usePrediction() {
     setError(null);
 
     try {
-      // Check if this is a sample market (for demo purposes)
-      if (params.marketId.startsWith('sample-')) {
-        // For sample markets, simulate the transaction without blockchain call
-        console.log('Simulating prediction for sample market:', params.marketId);
-        
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        // Save prediction to localStorage
-        const newPrediction: StoredPrediction = {
-          id: `pred_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          marketId: params.marketId,
-          outcome: params.outcome,
-          amount: params.amount,
-          timestamp: new Date().toISOString(),
-          status: 'confirmed',
-        };
-        
-        const predictions = getPredictions();
-        predictions.push(newPrediction);
-        savePredictions(predictions);
-        
-        console.log('Sample prediction placed successfully:', newPrediction);
-        return true;
-      }
-
-      // For real markets, use actual blockchain transaction
+      // All markets now use real blockchain transactions
       // Convert SUI to MIST (1 SUI = 1,000,000,000 MIST)
       const amountMist = Math.floor(params.amount * 1_000_000_000);
       
