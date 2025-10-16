@@ -52,8 +52,14 @@ export default function Dashboard() {
           activeValue: response.stats.total_volume / 1000000000,
         })
       }
-    } catch (error) {
-      console.error('Error loading stats:', error)
+    } catch (error: any) {
+      // If user doesn't exist yet, that's fine - show zero stats
+      if (error.message?.includes('User not found')) {
+        console.log('New user - no stats yet. Place your first prediction!');
+        // Stats already initialized to zeros
+      } else {
+        console.error('Error loading stats:', error)
+      }
     }
   }
   

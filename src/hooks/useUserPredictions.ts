@@ -45,10 +45,17 @@ export function useUserPredictions(userAddress?: string) {
       });
 
       setPredictions(response.predictions || []);
-    } catch (err) {
-      console.error('Error fetching predictions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch predictions');
-      setPredictions([]);
+    } catch (err: any) {
+      // If no predictions found or user doesn't exist, just show empty
+      if (err.message?.includes('not found') || err.message?.includes('404')) {
+        console.log('No predictions found for this user yet');
+        setPredictions([]);
+        setError(null);
+      } else {
+        console.error('Error fetching predictions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch predictions');
+        setPredictions([]);
+      }
     } finally {
       setIsLoading(false);
     }
