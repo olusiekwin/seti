@@ -5,6 +5,7 @@ import { SuiClientProvider, WalletProvider } from '@mysten/dapp-kit'
 import { getFullnodeUrl } from '@mysten/sui/client'
 import App from './App.tsx'
 import './index.css'
+import './dapp-kit-custom.css'
 import { ThemeProvider } from './contexts/ThemeContext'
 
 const networks = {
