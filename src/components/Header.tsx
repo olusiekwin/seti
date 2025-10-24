@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "./ThemeToggle"
+import { useWalletConnection } from '@/hooks/useWalletConnection'
 
 import { useScroll } from '@/hooks/use-scroll'
 
@@ -21,8 +22,7 @@ export function Header() {
   const location = useLocation()
   const { scrollDirection } = useScroll()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
-  // OnchainKit handles wallet connection state internally
-  const [isConnected, setIsConnected] = useState(false)
+  const { isConnected } = useWalletConnection()
 
   return (
     <div className="flex flex-col">
@@ -82,7 +82,7 @@ export function Header() {
               </Button>
             )}
 
-            {/* OnchainKit Connect Button */}
+            {/* dapp-kit Connect Button */}
             <ConnectButton />
 
             {/* User Menu Dropdown - Only shown when connected, positioned after wallet */}
