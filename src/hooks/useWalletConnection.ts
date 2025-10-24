@@ -1,8 +1,9 @@
-import { useAccount } from 'wagmi'
+import { useCurrentWallet, useConnectWallet } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 
 export function useWalletConnection() {
-  const { isConnected, address, isConnecting, isDisconnected } = useAccount()
+  const { currentWallet, isConnected, connectionStatus } = useCurrentWallet()
+  const { mutate: connect, isPending: isConnecting } = useConnectWallet()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
@@ -18,22 +19,22 @@ export function useWalletConnection() {
   useEffect(() => {
     console.log('Wallet Connection State:', {
       isConnected,
-      address,
+      address: currentWallet?.accounts[0]?.address,
       isConnecting,
-      isDisconnected,
-      isReady
+      isReady,
+      connectionStatus
     })
-  }, [isConnected, address, isConnecting, isDisconnected, isReady])
+  }, [isConnected, currentWallet, isConnecting, isReady, connectionStatus])
 
   return {
     isConnected,
-    address,
+    address: currentWallet?.accounts[0]?.address,
     isConnecting,
-    isDisconnected,
+    isDisconnected: !isConnected,
     isReady,
     // Helper to check if we should show wallet connection prompt
     shouldShowConnectPrompt: isReady && !isConnecting && !isConnected,
     // Helper to check if wallet is ready and connected
-    isWalletReady: isReady && isConnected && !!address
+    isWalletReady: isReady && isConnected && !!currentWallet?.accounts[0]?.address
   }
 }

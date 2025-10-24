@@ -6,8 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
 import { Link, useLocation } from "react-router-dom"
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount, useBalance } from 'wagmi'
+import { ConnectButton } from '@mysten/dapp-kit'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +21,8 @@ export function Header() {
   const location = useLocation()
   const { scrollDirection } = useScroll()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
-  const { address, isConnected } = useAccount()
-  const { data: balance } = useBalance({
-    address: address,
-  })
+  // OnchainKit handles wallet connection state internally
+  const [isConnected, setIsConnected] = useState(false)
 
   return (
     <div className="flex flex-col">
@@ -85,21 +82,8 @@ export function Header() {
               </Button>
             )}
 
-            {/* Rainbow Kit Connect Button */}
-            <div className="rainbow-kit-wrapper">
-              <ConnectButton 
-                showBalance={true}
-                accountStatus={{
-                  smallScreen: 'avatar',
-                  largeScreen: 'full',
-                }}
-                chainStatus={{
-                  smallScreen: 'icon',
-                  largeScreen: 'full',
-                }}
-                label="Connect Wallet"
-              />
-            </div>
+            {/* OnchainKit Connect Button */}
+            <ConnectButton />
 
             {/* User Menu Dropdown - Only shown when connected, positioned after wallet */}
             {isConnected && (
