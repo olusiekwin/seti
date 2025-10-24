@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
 import { Link, useLocation } from "react-router-dom"
-import { ConnectButton } from '@mysten/dapp-kit'
+import { Connected } from '@coinbase/onchainkit'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +29,7 @@ export function Header() {
       <header
         className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/80 backdrop-blur flex justify-center transform transition-transform duration-300 ${
           scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
-        }`}
+          }`}
       >
         <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-7xl w-full">
           {/* Logo */}
@@ -70,9 +70,9 @@ export function Header() {
             <ThemeToggle />
             
             {isConnected && (
-              <Button
-                variant="outline"
-                size="sm"
+                <Button
+                  variant="outline"
+                  size="sm"
                 className="items-center gap-1 lg:gap-2 rounded-xl bg-transparent hover:bg-[hsl(208,65%,75%)] hover:text-background border-[hsl(208,65%,75%)]"
                 onClick={() => setIsCreateMarketOpen(true)}
               >
@@ -82,8 +82,8 @@ export function Header() {
               </Button>
             )}
 
-            {/* dapp-kit Connect Button */}
-            <ConnectButton />
+            {/* OnchainKit Connected Component */}
+            <Connected />
 
             {/* User Menu Dropdown - Only shown when connected, positioned after wallet */}
             {isConnected && (
