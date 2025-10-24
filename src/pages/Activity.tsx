@@ -3,21 +3,41 @@
 import { Layout } from "@/components/Layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, DollarSign, CheckCircle, XCircle } from "lucide-react"
-import { useCurrentWallet, useCurrentAccount } from "@mysten/dapp-kit"
+import { Clock, DollarSign, CheckCircle, XCircle, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useUserPredictions } from "@/hooks/useUserPredictions"
+import { useWalletConnection } from "@/hooks/useWalletConnection"
+import { PredictionSlipModal } from "@/components/PredictionSlipModal"
+import { useState } from "react"
 
 export default function Activity() {
-  const { isConnected } = useCurrentWallet()
-  const currentAccount = useCurrentAccount()
-  const { predictions, isLoading } = useUserPredictions(currentAccount?.address)
+  const { isConnected, address, isConnecting, isReady, shouldShowConnectPrompt, isWalletReady } = useWalletConnection()
+  const { predictions, isLoading } = useUserPredictions(address)
+  const [selectedSlip, setSelectedSlip] = useState<{
+    market: any
+    prediction: any
+  } | null>(null)
   
   // All predictions are fetched from Supabase via backend
   const allPredictions = predictions
   const trades = predictions // All predictions are trades
 
-  if (!isConnected) {
+  // Show loading state while wallet is initializing
+  if (!isReady || isConnecting) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 max-w-7xl">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gradient-gold mb-4">Activity</h1>
+            <p className="text-muted-foreground mb-8">Loading wallet connection...</p>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Show connect prompt if wallet is not connected
+  if (shouldShowConnectPrompt) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 max-w-7xl">
@@ -87,8 +107,8 @@ export default function Activity() {
               )}
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
+          <div className="text-right flex flex-col items-end gap-2">
+            <div className="text-sm font-bold text-foreground">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
             {isActive ? (
               <div className="text-xs text-muted-foreground">
                 {prediction.outcome_label} @ {(prediction.price / 1000000000).toFixed(2)}
@@ -98,6 +118,15 @@ export default function Activity() {
                 {isWon ? "WON" : "LOST"}
               </div>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedSlip({ market: prediction.market, prediction })}
+              className="gap-1 text-xs h-6"
+            >
+              <FileText className="w-3 h-3" />
+              View Slip
+            </Button>
           </div>
         </div>
       </div>
@@ -161,6 +190,23 @@ export default function Activity() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Prediction Slip Modal */}
+      {selectedSlip && (
+        <PredictionSlipModal
+          isOpen={!!selectedSlip}
+          onClose={() => setSelectedSlip(null)}
+          market={selectedSlip.market}
+          prediction={{
+            outcome: selectedSlip.prediction.outcome_label,
+            amount: selectedSlip.prediction.amount / 1000000000,
+            shares: selectedSlip.prediction.shares || 0,
+            price: selectedSlip.prediction.price / 1000000000,
+            timestamp: selectedSlip.prediction.timestamp,
+            transaction_hash: selectedSlip.prediction.transaction_hash
+          }}
+        />
+      )}
     </Layout>
   )
 }

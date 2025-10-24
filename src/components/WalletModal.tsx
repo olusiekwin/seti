@@ -30,29 +30,60 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         wallet: w
       }));
       
-      // If no wallets detected, show install options
-      if (walletList.length === 0) {
-        walletList.push(
-          {
-            name: 'Sui Wallet',
-            icon: '🟡',
-            installed: false,
-            downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil'
-          },
-          {
-            name: 'Suiet',
-            icon: '🔵',
-            installed: false,
-            downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd'
-          },
-          {
-            name: 'Ethos',
-            icon: '⚪',
-            installed: false,
-            downloadUrl: 'https://chrome.google.com/webstore/detail/ethos-sui-wallet/mcbigmjiafegjnnogedioegffbooigli'
-          }
-        );
-      }
+      // Always show both Sui and Ethereum wallet options
+      walletList.push(
+        // Sui Wallets
+        {
+          name: 'Sui Wallet',
+          icon: '🟡',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil',
+          type: 'sui'
+        },
+        {
+          name: 'Suiet',
+          icon: '🔵',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd',
+          type: 'sui'
+        },
+        {
+          name: 'Ethos',
+          icon: '⚪',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/ethos-sui-wallet/mcbigmjiafegjnnogedioegffbooigli',
+          type: 'sui'
+        },
+        // Ethereum Wallets
+        {
+          name: 'MetaMask',
+          icon: '🦊',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn',
+          type: 'ethereum'
+        },
+        {
+          name: 'WalletConnect',
+          icon: '🔗',
+          installed: false,
+          downloadUrl: 'https://walletconnect.com/',
+          type: 'ethereum'
+        },
+        {
+          name: 'Coinbase Wallet',
+          icon: '🔵',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/coinbase-wallet-extension/hnfanknocfeofbddgcijnmhnfnkdnaad',
+          type: 'ethereum'
+        },
+        {
+          name: 'Trust Wallet',
+          icon: '🛡️',
+          installed: false,
+          downloadUrl: 'https://chrome.google.com/webstore/detail/trust-wallet/egjidjbpglichdcondbcbdnbeeppgdph',
+          type: 'ethereum'
+        }
+      );
       
       setDetectedWallets(walletList);
     }
@@ -60,12 +91,20 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   
   const getWalletIcon = (name: string): string => {
     const nameLower = name.toLowerCase();
+    // Sui Wallets
     if (nameLower.includes('sui wallet')) return '🟡';
     if (nameLower.includes('suiet')) return '🔵';
     if (nameLower.includes('ethos')) return '⚪';
     if (nameLower.includes('martian')) return '🔴';
     if (nameLower.includes('glass')) return '💎';
     if (nameLower.includes('morphis')) return '🟣';
+    // Ethereum Wallets
+    if (nameLower.includes('metamask')) return '🦊';
+    if (nameLower.includes('walletconnect')) return '🔗';
+    if (nameLower.includes('coinbase')) return '🔵';
+    if (nameLower.includes('trust')) return '🛡️';
+    if (nameLower.includes('rainbow')) return '🌈';
+    if (nameLower.includes('phantom')) return '👻';
     return '💼';
   };
 

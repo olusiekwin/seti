@@ -8,9 +8,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X, DollarSign, AlertCircle, CheckCircle, Download, Copy } from "lucide-react"
 import { type Market, calculatePrices, formatTimeRemaining } from "@/types/contract"
-import { useCurrentWallet } from "@mysten/dapp-kit"
 import { usePrediction, savePredictions, getPredictions } from "@/hooks/usePrediction"
 import type { PredictionReceipt } from "@/hooks/usePredictionModal"
+import { useWalletConnection } from "@/hooks/useWalletConnection"
 
 interface SharedPredictionModalProps {
   isOpen: boolean
@@ -21,7 +21,7 @@ interface SharedPredictionModalProps {
 }
 
 export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShowReceipt }: SharedPredictionModalProps) {
-  const { isConnected } = useCurrentWallet()
+  const { isConnected } = useWalletConnection()
   const { placePrediction, isLoading, error } = usePrediction()
   const [amount, setAmount] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)

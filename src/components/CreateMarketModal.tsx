@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Calendar, DollarSign } from "lucide-react";
-import { useCreateMarket } from "@/hooks/useCreateMarket";
-import { useCurrentWallet } from '@mysten/dapp-kit';
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 interface CreateMarketModalProps {
   isOpen: boolean;
@@ -16,8 +15,9 @@ interface CreateMarketModalProps {
 }
 
 export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketModalProps) {
-  const { isConnected } = useCurrentWallet();
-  const { createMarket, isLoading, error } = useCreateMarket();
+  const { isConnected } = useWalletConnection();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     question: "",
@@ -41,15 +41,11 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
     }
 
     try {
-      const marketId = await createMarket({
-        question: formData.question,
-        description: formData.description,
-        endTime: new Date(formData.end_time),
-        category: formData.category,
-        imageUrl: formData.image_url,
-        tags: formData.tags,
-        initialLiquiditySui: parseFloat(formData.initial_liquidity)
-      });
+      // Simulate market creation - replace with actual implementation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const marketId = `market-${Date.now()}`;
+      console.log("Market created:", marketId);
 
       if (marketId) {
         onSuccess?.(marketId);

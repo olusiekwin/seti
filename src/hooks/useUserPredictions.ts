@@ -2,110 +2,71 @@ import { useState, useEffect } from 'react';
 import { predictionsApi } from '@/services/api';
 
 export interface UserPrediction {
-  id: number;
-  transaction_hash: string;
+  id: string;
   market_id: string;
   user_address: string;
   outcome: number;
-  outcome_label: 'YES' | 'NO';
   amount: number;
-  price: number;
-  shares: number;
+  price?: number;
+  shares?: number;
   timestamp: number;
-  created_at: string;
+  status: 'pending' | 'confirmed' | 'active' | 'resolved' | 'won' | 'lost';
   market?: {
+    id: string;
     question: string;
+    description: string;
     category: string;
     resolved: boolean;
-    winning_outcome: number;
+    winning_outcome?: number;
+    end_time: number;
   };
 }
 
-/**
- * Hook to fetch user predictions from Supabase via backend
- */
 export function useUserPredictions(userAddress?: string) {
   const [predictions, setPredictions] = useState<UserPrediction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPredictions = async () => {
-    if (!userAddress) {
-      setPredictions([]);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await predictionsApi.getAll({
-        user_address: userAddress
-      });
-
-      setPredictions(response.predictions || []);
-    } catch (err: any) {
-      // If no predictions found or user doesn't exist, just show empty
-      if (err.message?.includes('not found') || err.message?.includes('404')) {
-        console.log('No predictions found for this user yet');
-        setPredictions([]);
-        setError(null);
-      } else {
-        console.error('Error fetching predictions:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch predictions');
-        setPredictions([]);
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPredictions();
+    if (userAddress) {
+      loadPredictions();
+    } else {
+      setPredictions([]);
+    }
   }, [userAddress]);
 
-  return {
-    predictions,
-    isLoading,
-    error,
-    refetch: fetchPredictions,
-  };
-}
+  const loadPredictions = async () => {
+    if (!userAddress) return;
 
-/**
- * Hook to fetch recent platform predictions
- */
-export function useRecentPredictions(limit: number = 50) {
-  const [predictions, setPredictions] = useState<UserPrediction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    setIsLoading(true);
+    setError(null);
 
-  const fetchPredictions = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await predictionsApi.getRecent(limit);
+      const response = await predictionsApi.getAll({
+        user_address: userAddress,
+        per_page: 100
+      });
+      
       setPredictions(response.predictions || []);
     } catch (err) {
-      console.error('Error fetching recent predictions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch predictions');
+      console.error('Error loading user predictions:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load predictions');
       setPredictions([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPredictions();
-  }, [limit]);
+  const refetch = () => {
+    if (userAddress) {
+      loadPredictions();
+    }
+  };
 
   return {
     predictions,
     isLoading,
     error,
-    refetch: fetchPredictions,
+    refetch
   };
 }
-

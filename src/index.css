@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: 'Helixa';
-  src: local('Helixa'), local('Helixa Regular'), url('/fonts/helixa.woff2') format('woff2');
+  src: local('Helixa'), local('Helixa Regular');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;

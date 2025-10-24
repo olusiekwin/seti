@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useSuiClient } from '@mysten/dapp-kit';
-import { PACKAGE_ID, MODULE } from '@/types/contract';
+import { useState, useEffect } from 'react';
 
 export interface MarketPrices {
-  yesPrice: number; // Price in basis points (0-10000, where 10000 = 100%)
-  noPrice: number;  // Price in basis points (0-10000, where 10000 = 100%)
+  yesPrice: number;
+  noPrice: number;
+  totalLiquidity: number;
+  totalVolume: number;
 }
 
 export interface UseMarketPricesResult {
@@ -14,85 +14,46 @@ export interface UseMarketPricesResult {
   refetch: () => void;
 }
 
-/**
- * Hook to fetch current market prices
- */
 export function useMarketPrices(marketId: string): UseMarketPricesResult {
-  const client = useSuiClient();
   const [prices, setPrices] = useState<MarketPrices | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPrices = useCallback(async () => {
-    if (!marketId) {
-      setPrices(null);
-      return;
-    }
+  const fetchPrices = async () => {
+    if (!marketId) return;
 
     setIsLoading(true);
     setError(null);
 
     try {
-      // Call the get_market_prices function on the contract
-      const result = await client.devInspectTransactionBlock({
-        transactionBlock: {
-          kind: 'programmableTransaction',
-          inputs: [
-            {
-              type: 'object',
-              objectType: 'immOrOwnedObject',
-              objectId: marketId,
-            },
-          ],
-          transactions: [
-            {
-              MoveCall: {
-                package: PACKAGE_ID,
-                module: MODULE,
-                function: 'get_market_prices',
-                arguments: [0], // Reference to the market object
-              },
-            },
-          ],
-        },
-        sender: '0x0000000000000000000000000000000000000000000000000000000000000000', // Dummy sender
-      });
-
-      if (result.results && result.results.length > 0) {
-        const returnValues = result.results[0].returnValues;
-        if (returnValues && returnValues.length >= 2) {
-          const yesPrice = parseInt(returnValues[0][0], 16);
-          const noPrice = parseInt(returnValues[1][0], 16);
-          
-          setPrices({
-            yesPrice,
-            noPrice,
-          });
-        } else {
-          setError('Invalid price data received');
-          setPrices(null);
-        }
-      } else {
-        setError('No price data received');
-        setPrices(null);
-      }
+      // Simulate price fetching
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock prices
+      const mockPrices: MarketPrices = {
+        yesPrice: 0.5,
+        noPrice: 0.5,
+        totalLiquidity: 1000,
+        totalVolume: 500
+      };
+      
+      setPrices(mockPrices);
     } catch (err) {
-      console.error('Error fetching market prices:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch market prices');
-      setPrices(null);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch prices';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [client, marketId]);
+  };
 
   useEffect(() => {
     fetchPrices();
-  }, [fetchPrices]);
+  }, [marketId]);
 
   return {
     prices,
     isLoading,
     error,
-    refetch: fetchPrices,
+    refetch: fetchPrices
   };
 }

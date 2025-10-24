@@ -7,13 +7,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { User, Settings, Bell, Shield, Copy, Check } from "lucide-react"
-import { useCurrentWallet, useAccounts } from "@mysten/dapp-kit"
 import { useState } from "react"
+import { useWalletConnection } from "@/hooks/useWalletConnection"
 
 export default function Profile() {
-  const { isConnected } = useCurrentWallet()
-  const accounts = useAccounts()
-  const currentAccount = accounts?.[0]
+  const { isConnected, address, isConnecting, isReady, shouldShowConnectPrompt, isWalletReady } = useWalletConnection()
+  const currentAccount = address ? { address } : null
   const [copied, setCopied] = useState(false)
 
   const copyAddress = async () => {
@@ -24,7 +23,22 @@ export default function Profile() {
     }
   }
 
-  if (!isConnected) {
+  // Show loading state while wallet is initializing
+  if (!isReady || isConnecting) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 max-w-7xl">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gradient-gold mb-4">Profile</h1>
+            <p className="text-muted-foreground mb-8">Loading wallet connection...</p>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Show connect prompt if wallet is not connected
+  if (shouldShowConnectPrompt) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 max-w-7xl">

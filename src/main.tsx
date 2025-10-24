@@ -1,32 +1,34 @@
-import React, { useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import sdk from '@farcaster/frame-sdk';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { WagmiProvider } from 'wagmi'
+import { RainbowKitProvider, getDefaultConfig } from '@rainbow-me/rainbowkit'
+import { mainnet, base, arbitrum, optimism, polygon } from 'wagmi/chains'
+import App from './App.tsx'
+import './index.css'
+import '@rainbow-me/rainbowkit/styles.css'
+import './rainbow-kit-custom.css'
+import { ThemeProvider } from './contexts/ThemeContext'
 
-// Initialize Farcaster SDK inside Warpcast iframe
-const initFarcaster = async (): Promise<void> => {
-  if (window.self !== window.top) {
-    try {
-      console.log('[MAIN] Initializing Farcaster SDK...');
+const config = getDefaultConfig({
+  appName: 'Seti Prediction Markets',
+  projectId: 'seti-prediction-markets-dev', // Development project ID
+  chains: [mainnet, base, arbitrum, optimism, polygon],
+  ssr: false, // If your dApp uses server side rendering (SSR)
+})
 
-      const context = await sdk.context;
-      console.log('[MAIN] Context:', context);
-
-      // Dismiss splash screen
-      sdk.actions.ready();
-      console.log('[MAIN] ✅ ready() called');
-    } catch (error) {
-      console.error('[MAIN] SDK Error:', error);
-    }
-  }
-};
-
-// Call after DOM is ready
-initFarcaster();
+const queryClient = new QueryClient()
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+    <ThemeProvider>
+      <WagmiProvider config={config}>
+        <QueryClientProvider client={queryClient}>
+          <RainbowKitProvider>
+            <App />
+          </RainbowKitProvider>
+        </QueryClientProvider>
+      </WagmiProvider>
+    </ThemeProvider>
+  </React.StrictMode>,
+)

@@ -5,16 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TrendingUp, DollarSign, Activity, BarChart3, Plus, Clock, TrendingDown } from "lucide-react"
-import { useCurrentWallet, useCurrentAccount } from "@mysten/dapp-kit"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { useUserPredictions } from "@/hooks/useUserPredictions"
 import { usersApi } from "@/services/api"
+import { useWalletConnection } from "@/hooks/useWalletConnection"
 
 export default function Dashboard() {
-  const { isConnected } = useCurrentWallet()
-  const currentAccount = useCurrentAccount()
-  const { predictions, isLoading: loadingPredictions } = useUserPredictions(currentAccount?.address)
+  const { isConnected, address, isConnecting, isReady, shouldShowConnectPrompt, isWalletReady } = useWalletConnection()
+  const { predictions, isLoading: loadingPredictions } = useUserPredictions(address)
   
   const [stats, setStats] = useState({
     totalInvested: 0,
@@ -29,16 +28,16 @@ export default function Dashboard() {
   })
 
   useEffect(() => {
-    if (currentAccount?.address) {
+    if (address) {
       loadStats()
     }
-  }, [currentAccount?.address])
+  }, [address])
 
   const loadStats = async () => {
-    if (!currentAccount?.address) return
+    if (!address) return
     
     try {
-      const response = await usersApi.getStats(currentAccount.address)
+      const response = await usersApi.getStats(address)
       if (response.stats) {
         setStats({
           totalInvested: response.stats.total_volume / 1000000000,
@@ -67,7 +66,22 @@ export default function Dashboard() {
   const activePredictions = predictions.filter(p => p.market && !p.market.resolved)
   const closedPredictions = predictions.filter(p => p.market && p.market.resolved)
 
-  if (!isConnected) {
+  // Show loading state while wallet is initializing
+  if (!isReady || isConnecting) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-16 max-w-7xl">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gradient-gold mb-4">Dashboard</h1>
+            <p className="text-muted-foreground mb-8">Loading wallet connection...</p>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  // Show connect prompt if wallet is not connected
+  if (shouldShowConnectPrompt) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 max-w-7xl">

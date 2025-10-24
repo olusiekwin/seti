@@ -1,8 +1,4 @@
 import { useState } from 'react';
-import { useCurrentWallet, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
-import { SUI_TYPE_ARG } from '@mysten/sui/utils';
-import { PACKAGE_ID, MODULE } from '@/types/contract';
 
 export interface PredictionParams {
   marketId: string;
@@ -18,117 +14,45 @@ export interface StoredPrediction {
   outcome: 'YES' | 'NO';
   amount: number;
   price?: number;
-  potentialPayout?: number;
-  timestamp: string;
-  status: 'pending' | 'confirmed' | 'active' | 'resolved' | 'won' | 'lost';
-  actualPayout?: number;
-  settledAt?: string;
+  timestamp: number;
+  status?: 'active' | 'closed' | 'won' | 'lost';
 }
 
-// Alias for backward compatibility
-export type Prediction = StoredPrediction;
-
-// LocalStorage key for predictions
-const PREDICTIONS_STORAGE_KEY = 'seti_predictions';
-
-// Get predictions from localStorage
-export function getPredictions(): StoredPrediction[] {
+// Local storage functions
+export const savePredictions = (predictions: StoredPrediction[]) => {
   try {
-    const stored = localStorage.getItem(PREDICTIONS_STORAGE_KEY);
+    const existing = getPredictions();
+    const updated = [...existing, ...predictions];
+    localStorage.setItem('user_predictions', JSON.stringify(updated));
+  } catch (error) {
+    console.error('Failed to save predictions:', error);
+  }
+};
+
+export const getPredictions = (): StoredPrediction[] => {
+  try {
+    const stored = localStorage.getItem('user_predictions');
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
-    console.error('Error reading predictions from localStorage:', error);
+    console.error('Failed to load predictions:', error);
     return [];
   }
-}
+};
 
-// Save predictions to localStorage
-export function savePredictions(predictions: StoredPrediction[]): void {
-  try {
-    localStorage.setItem(PREDICTIONS_STORAGE_KEY, JSON.stringify(predictions));
-  } catch (error) {
-    console.error('Error saving predictions to localStorage:', error);
-  }
-}
-
-// Get active predictions (pending, confirmed, or active)
-export function getActivePredictions(): StoredPrediction[] {
-  const predictions = getPredictions();
-  return predictions.filter(p => p.status === 'pending' || p.status === 'confirmed' || p.status === 'active');
-}
-
-// Get closed predictions (resolved, won, or lost)
-export function getClosedPredictions(): StoredPrediction[] {
-  const predictions = getPredictions();
-  return predictions.filter(p => p.status === 'resolved' || p.status === 'won' || p.status === 'lost');
-}
-
-// Get a single prediction by ID
-export function getPredictionById(id: string): StoredPrediction | undefined {
-  const predictions = getPredictions();
-  return predictions.find(p => p.id === id);
-}
-
-// Settle a prediction (mark as won or lost)
-export function settlePrediction(id: string, won: boolean, actualPayout?: number): boolean {
+export const getPredictionById = (id: string): StoredPrediction | null => {
   try {
     const predictions = getPredictions();
-    const index = predictions.findIndex(p => p.id === id);
-    
-    if (index === -1) {
-      console.error(`Prediction with id ${id} not found`);
-      return false;
-    }
-    
-    predictions[index] = {
-      ...predictions[index],
-      status: won ? 'won' : 'lost',
-      actualPayout: actualPayout || 0,
-      settledAt: new Date().toISOString(),
-    };
-    
-    savePredictions(predictions);
-    return true;
+    return predictions.find(p => p.id === id) || null;
   } catch (error) {
-    console.error('Error settling prediction:', error);
-    return false;
+    console.error('Failed to get prediction by id:', error);
+    return null;
   }
-}
-
-// Calculate prediction statistics
-export function calculatePredictionStats() {
-  const predictions = getPredictions();
-  const active = getActivePredictions();
-  const closed = getClosedPredictions();
-  
-  const totalInvested = predictions.reduce((sum, p) => sum + p.amount, 0);
-  const totalPayout = closed.reduce((sum, p) => sum + (p.actualPayout || 0), 0);
-  const totalProfit = totalPayout - closed.reduce((sum, p) => sum + p.amount, 0);
-  
-  const wins = closed.filter(p => p.status === 'won').length;
-  const losses = closed.filter(p => p.status === 'lost').length;
-  const winRate = closed.length > 0 ? (wins / closed.length) * 100 : 0;
-  
-  const activeValue = active.reduce((sum, p) => sum + (p.potentialPayout || p.amount), 0);
-  
-  return {
-    totalInvested,
-    totalPayout,
-    totalProfit,
-    wins,
-    losses,
-    winRate,
-    activePositions: active.length,
-    closedPositions: closed.length,
-    activeValue,
-  };
-}
+};
 
 export function usePrediction() {
-  const { isConnected } = useCurrentWallet();
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   const placePrediction = async (params: PredictionParams): Promise<boolean> => {
     if (!isConnected) {
@@ -140,60 +64,27 @@ export function usePrediction() {
     setError(null);
 
     try {
-      // All markets now use real blockchain transactions
-      // Convert SUI to MIST (1 SUI = 1,000,000,000 MIST)
-      const amountMist = Math.floor(params.amount * 1_000_000_000);
+      // For now, just simulate the prediction
+      // In a real implementation, this would connect to Ethereum wallets
+      console.log('Placing prediction:', params);
       
-      // Convert outcome to contract format (YES = 1, NO = 0)
-      const outcomeValue = params.outcome === 'YES' ? 1 : 0;
-
-      // Create transaction
-      const tx = new Transaction();
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Split SUI for payment
-      const [paymentCoin] = tx.splitCoins(tx.gas, [amountMist]);
-
-      // Call place_prediction function
-      tx.moveCall({
-        target: `${PACKAGE_ID}::${MODULE}::place_prediction`,
-        arguments: [
-          tx.object(params.marketId), // Market object
-          tx.pure.u8(outcomeValue),   // Outcome (0 or 1)
-          paymentCoin,                // Payment coin
-        ],
-      });
-
-      // Execute transaction
-      const result = await signAndExecute({
-        transaction: tx,
-        options: {
-          showEffects: true,
-          showEvents: true,
-        },
-      });
-
-      console.log('Prediction placed successfully:', result);
-      
-      // Save prediction to localStorage
-      const newPrediction: StoredPrediction = {
-        id: `pred_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      // Store prediction locally
+      const prediction: StoredPrediction = {
+        id: `${params.marketId}-${Date.now()}`,
         marketId: params.marketId,
         outcome: params.outcome,
         amount: params.amount,
-        timestamp: new Date().toISOString(),
-        status: 'confirmed',
+        timestamp: Date.now(),
       };
       
-      const predictions = getPredictions();
-      predictions.push(newPrediction);
-      savePredictions(predictions);
-      
+      savePredictions([prediction]);
       return true;
-      
     } catch (err) {
-      console.error('Error placing prediction:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to place prediction';
-      setError(errorMessage);
+      console.error('Prediction error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to place prediction');
       return false;
     } finally {
       setIsLoading(false);
@@ -204,6 +95,33 @@ export function usePrediction() {
     placePrediction,
     isLoading,
     error,
-    isConnected
+    isConnected,
+    setIsConnected,
+  };
+}
+
+// Helper function to get user's prediction statistics
+export function useUserPredictionStats() {
+  const predictions = getPredictions();
+  
+  const active = predictions.filter(p => p.status === 'active' || !p.status);
+  const closed = predictions.filter(p => p.status === 'closed');
+  const won = predictions.filter(p => p.status === 'won');
+  const lost = predictions.filter(p => p.status === 'lost');
+  
+  const activeValue = active.reduce((sum, p) => sum + p.amount, 0);
+  const totalWon = won.reduce((sum, p) => sum + p.amount, 0);
+  const totalLost = lost.reduce((sum, p) => sum + p.amount, 0);
+  
+  return {
+    totalPredictions: predictions.length,
+    activePredictions: active.length,
+    closedPredictions: closed.length,
+    wonPredictions: won.length,
+    lostPredictions: lost.length,
+    activeValue,
+    totalWon,
+    totalLost,
+    winRate: predictions.length > 0 ? (won.length / predictions.length) * 100 : 0,
   };
 }

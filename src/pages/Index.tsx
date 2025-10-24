@@ -4,16 +4,27 @@ import { MarketCard } from "@/components/MarketCard"
 import { MarketCardSkeleton } from "@/components/MarketCardSkeleton"
 import { MarketSlideshow } from "@/components/MarketSlideshow"
 import { SharedPredictionModal, PredictionReceiptModal } from "@/components/SharedPredictionModal"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Plus } from "lucide-react"
+import { ArrowRight, Plus, TrendingUp, Search, Filter, Bookmark } from "lucide-react"
 import { useMarkets } from "@/hooks/useMarkets"
 import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
 import { Layout } from "@/components/Layout"
 
 const Index = () => {
-  const { markets, isLoading, error, refetch } = useMarkets()
   const [searchQuery, setSearchQuery] = useState("")
+  const [activeTab, setActiveTab] = useState("all");
+  const [sortBy, setSortBy] = useState("created_timestamp");
+  
+  // Use backend filtering instead of frontend filtering
+  const { markets, isLoading, error, refetch } = useMarkets({
+    category: activeTab === "all" ? undefined : activeTab,
+    sort_by: sortBy as 'volume_24h' | 'total_liquidity' | 'created_timestamp',
+    search: searchQuery || undefined,
+    status: 'active'
+  })
+  
   const {
     isOpen,
     selectedMarket,
@@ -36,27 +47,8 @@ const Index = () => {
     return () => window.removeEventListener('marketSearch', handleSearch);
   }, []);
 
-  const [activeTab, setActiveTab] = useState("all");
-
-  // Filter markets based on search query and active tab
-  const filteredMarkets = markets.filter(market => {
-    // First filter by search query
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      if (!(
-        market.question.toLowerCase().includes(searchLower) ||
-        market.description?.toLowerCase().includes(searchLower) ||
-        market.category.toLowerCase().includes(searchLower) ||
-        market.tags?.some(tag => tag.toLowerCase().includes(searchLower))
-      )) {
-        return false;
-      }
-    }
-
-    // Then filter by category tab
-    if (activeTab === "all") return true;
-    return market.category.toLowerCase() === activeTab.toLowerCase();
-  });
+  // No need for frontend filtering since backend handles it
+  const filteredMarkets = markets;
 
   return (
     <Layout>
@@ -64,26 +56,102 @@ const Index = () => {
         {/* Main Markets Section */}
         <section className="py-4 w-full overflow-x-hidden">
           <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
-            <Tabs defaultValue="all" className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
-              <TabsList className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10">
-                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full justify-between">
-                  <TabsTrigger value="all" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
-                    All Markets
+            <Tabs value={activeTab} className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
+              {/* Seti Topic Navigation */}
+              <TabsList className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10 mb-4">
+                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full">
+                  <TabsTrigger value="all" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    All Topics
                   </TabsTrigger>
-                  <TabsTrigger value="crypto" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
-                    Crypto
-                  </TabsTrigger>
-                  <TabsTrigger value="sports" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex-1 text-center">
-                    Sports
-                  </TabsTrigger>
+                  {Array.from(new Set(markets.map(market => market.category).filter(Boolean))).map(category => (
+                    <TabsTrigger 
+                      key={category} 
+                      value={category.toLowerCase()} 
+                      className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors capitalize"
+                    >
+                      {category}
+                    </TabsTrigger>
+                  ))}
                 </div>
               </TabsList>
 
+              {/* Seti Search & Filter Bar */}
+              <div className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10 mb-4">
+                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full items-center">
+                  <div className="relative flex items-center px-3">
+                    <Search className="w-4 h-4 text-muted-foreground mr-2" />
+                    <input 
+                      type="text" 
+                      placeholder="Search Seti markets..." 
+                      value={searchQuery}
+                      className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        const searchEvent = new CustomEvent('marketSearch', {
+                          detail: { query: e.target.value.toLowerCase() }
+                        });
+                        window.dispatchEvent(searchEvent);
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center text-muted-foreground px-2">|</div>
+                  <button className="flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors">
+                    <Filter className="w-4 h-4 mr-1" />
+                    Filter
+                  </button>
+                  <button className="flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors">
+                    <Bookmark className="w-4 h-4 mr-1" />
+                    Saved
+                  </button>
+                  <div className="flex items-center text-muted-foreground px-2">|</div>
+                  <button className="bg-[hsl(208,65%,75%)] text-background px-3 py-1 rounded-md text-sm font-medium">
+                    Active
+                  </button>
+                  <div className="flex items-center gap-2 px-3 overflow-x-auto scrollbar-hide">
+                    {markets.slice(0, 8).map((market, index) => (
+                      <button 
+                        key={market.id} 
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                        onClick={() => {
+                          const searchEvent = new CustomEvent('marketSearch', {
+                            detail: { query: market.question.toLowerCase() }
+                          });
+                          window.dispatchEvent(searchEvent);
+                        }}
+                      >
+                        {market.question.length > 15 ? market.question.substring(0, 15) + '...' : market.question}
+                      </button>
+                    ))}
+                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Sorting Controls */}
+              <div className="flex items-center justify-between mt-4 mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Sort by:</span>
+                  <select 
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="bg-muted/30 border border-border/50 rounded-md px-3 py-1 text-sm text-foreground"
+                  >
+                    <option value="created_timestamp">Newest</option>
+                    <option value="volume_24h">Volume</option>
+                    <option value="total_liquidity">Liquidity</option>
+                  </select>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  {filteredMarkets.length} markets
+                </div>
+              </div>
 
 
 
 
-              <TabsContent value="all" className="mt-8">
+
+              <TabsContent value={activeTab} className="mt-8">
                 {isLoading ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
                     {[...Array(8)].map((_, index) => (
@@ -127,11 +195,12 @@ const Index = () => {
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                         {filteredMarkets.map((market, index) => (
-                          <MarketCard
-                            key={market.id}
-                            market={market}
-                            trending={index < 3 ? (index % 2 === 0 ? "up" : "down") : undefined}
-                          />
+                          <ErrorBoundary key={market.id}>
+                            <MarketCard
+                              market={market}
+                              trending={index < 3 ? (index % 2 === 0 ? "up" : "down") : undefined}
+                            />
+                          </ErrorBoundary>
                         ))}
                       </div>
                     )}
@@ -147,7 +216,7 @@ const Index = () => {
                   size="lg"
                   className="gap-2 w-full sm:w-auto transition-all duration-200 hover:scale-105 bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background"
                   onClick={() => {
-                    // TODO: Implement load more functionality
+                    refetch();
                   }}
                 >
                   Load More Markets

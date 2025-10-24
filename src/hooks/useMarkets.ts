@@ -17,8 +17,14 @@ export function useMarkets(params?: {
       setIsLoading(true);
       setError(null);
 
-      // Fetch from backend API
-      const response = await marketsApi.getAll(params);
+      // Fetch from backend API with proper parameters
+      const apiParams = {
+        ...params,
+        sort_by: params?.sort_by || 'created_timestamp',
+        per_page: 50 // Increase limit for better UX
+      };
+      
+      const response = await marketsApi.getAll(apiParams);
       
       // If no markets, show empty state
       if (!response.markets || response.markets.length === 0) {
