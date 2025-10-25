@@ -5,8 +5,9 @@ import { Search, Plus, User, BarChart3, Activity, ChevronDown } from "lucide-rea
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
+import { WalletConnectionModal } from "./WalletConnectionModal"
 import { Link, useLocation } from "react-router-dom"
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
+import { useAccount, useDisconnect } from 'wagmi'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,8 +23,8 @@ export function Header() {
   const location = useLocation()
   const { scrollDirection } = useScroll()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { isConnected, address } = useWalletConnection()
-  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
 
   return (
@@ -87,12 +88,7 @@ export function Header() {
             {/* Wallet Connection */}
             {!isConnected ? (
               <Button
-                onClick={() => {
-                  // Connect to the first available connector (usually MetaMask)
-                  if (connectors.length > 0) {
-                    connect({ connector: connectors[0] })
-                  }
-                }}
+                onClick={() => setIsWalletModalOpen(true)}
                 className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background rounded-xl"
               >
                 Connect Wallet
@@ -168,6 +164,11 @@ export function Header() {
           console.log('Market created:', marketId)
           setIsCreateMarketOpen(false)
         }}
+      />
+
+      <WalletConnectionModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
       />
     </div>
   )
