@@ -40,7 +40,7 @@ export function useCreateMarket(): UseCreateMarketResult {
       
       const marketId = `market-${Date.now()}`;
       console.log('Market created:', marketId);
-      
+
       return marketId;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create market';
