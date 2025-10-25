@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { contractService } from '../services/contract';
+import { PREDICTION_MARKET_ABI, CONTRACT_ADDRESS } from '../lib/contract-abi';
 
 export interface PredictionParams {
   marketId: string;
   outcome: 'YES' | 'NO';
-  amount: number; // in SUI
+  amount: number; // in ETH
 }
 
 export interface StoredPrediction {
@@ -52,10 +55,14 @@ export const getPredictionById = (id: string): StoredPrediction | null => {
 export function usePrediction() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
+    hash,
+  });
 
   const placePrediction = async (params: PredictionParams): Promise<boolean> => {
-    if (!isConnected) {
+    if (!isConnected || !address) {
       setError('Please connect your wallet first');
       return false;
     }
@@ -64,24 +71,48 @@ export function usePrediction() {
     setError(null);
 
     try {
-      // For now, just simulate the prediction
-      // In a real implementation, this would connect to Ethereum wallets
-      console.log('Placing prediction:', params);
+      console.log('Placing prediction on smart contract:', params);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Convert outcome to number (0 = NO, 1 = YES)
+      const outcome = params.outcome === 'YES' ? 1 : 0;
       
-      // Store prediction locally
-      const prediction: StoredPrediction = {
-        id: `${params.marketId}-${Date.now()}`,
-        marketId: params.marketId,
-        outcome: params.outcome,
-        amount: params.amount,
-        timestamp: Date.now(),
-      };
+      // Convert amount to wei (assuming amount is in ETH)
+      const amountInWei = BigInt(Math.floor(params.amount * 1e18));
       
-      savePredictions([prediction]);
-      return true;
+      // Call smart contract placeBet function
+      writeContract({
+        address: CONTRACT_ADDRESS,
+        abi: PREDICTION_MARKET_ABI,
+        functionName: 'placeBet',
+        args: [BigInt(params.marketId), outcome],
+        value: amountInWei,
+      });
+
+      // Wait for transaction confirmation
+      if (isSuccess && hash) {
+        // Record prediction in backend
+        await contractService.createPrediction({
+          market_id: params.marketId,
+          user_address: address,
+          outcome: outcome,
+          amount: Math.floor(params.amount * 1e18),
+          transaction_hash: hash
+        });
+
+        // Store prediction locally for UI
+        const prediction: StoredPrediction = {
+          id: `${params.marketId}-${Date.now()}`,
+          marketId: params.marketId,
+          outcome: params.outcome,
+          amount: params.amount,
+          timestamp: Date.now(),
+        };
+        
+        savePredictions([prediction]);
+        return true;
+      }
+      
+      return false;
     } catch (err) {
       console.error('Prediction error:', err);
       setError(err instanceof Error ? err.message : 'Failed to place prediction');
@@ -93,10 +124,11 @@ export function usePrediction() {
 
   return {
     placePrediction,
-    isLoading,
-    error,
+    isLoading: isLoading || isPending || isConfirming,
+    error: error || writeError?.message,
     isConnected,
-    setIsConnected,
+    hash,
+    isSuccess,
   };
 }
 

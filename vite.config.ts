@@ -14,4 +14,22 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    global: 'globalThis',
+    Buffer: 'Buffer',
+    process: 'process',
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+  },
+  esbuild: {
+    define: {
+      global: 'globalThis',
+    },
+  },
+  build: {
+    rollupOptions: {
+      external: [],
+    },
+  },
 });

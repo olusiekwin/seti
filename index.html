@@ -23,6 +23,76 @@
 
 <body>
   <div id="root"></div>
+  <script>
+    // Buffer polyfill - must be applied before any modules load
+    if (typeof globalThis.Buffer === 'undefined') {
+      // Create a comprehensive Buffer polyfill
+      function BufferPolyfill(data, encoding) {
+        if (typeof data === 'string') {
+          if (encoding === 'hex') {
+            const hex = data.replace(/[^0-9a-fA-F]/g, '');
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+              bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            return bytes;
+          }
+          return new TextEncoder().encode(data);
+        }
+        return new Uint8Array(data);
+      }
+      
+      BufferPolyfill.from = function(data, encoding) {
+        return new BufferPolyfill(data, encoding);
+      };
+      
+      BufferPolyfill.isBuffer = function(obj) {
+        return obj instanceof Uint8Array;
+      };
+      
+      BufferPolyfill.alloc = function(size, fill) {
+        const buffer = new Uint8Array(size);
+        if (fill !== undefined) {
+          buffer.fill(fill);
+        }
+        return buffer;
+      };
+      
+      BufferPolyfill.concat = function(list, totalLength) {
+        const total = totalLength || list.reduce((acc, item) => acc + item.length, 0);
+        const result = new Uint8Array(total);
+        let offset = 0;
+        for (const item of list) {
+          result.set(item, offset);
+          offset += item.length;
+        }
+        return result;
+      };
+      
+      // Add prototype methods
+      BufferPolyfill.prototype = Uint8Array.prototype;
+      BufferPolyfill.prototype.toString = function(encoding) {
+        if (encoding === 'hex') {
+          return Array.from(this).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        return new TextDecoder().decode(this);
+      };
+      
+      globalThis.Buffer = BufferPolyfill;
+    }
+    
+    // Process polyfill
+    if (typeof globalThis.process === 'undefined') {
+      globalThis.process = {
+        env: {},
+        version: '',
+        platform: 'browser',
+        nextTick: function(fn) {
+          Promise.resolve().then(fn);
+        }
+      };
+    }
+  </script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

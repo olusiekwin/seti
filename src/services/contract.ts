@@ -4,7 +4,7 @@
  */
 
 // Contract configuration - matches backend
-const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0xYourContractAddress'
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS || '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1'
 
 export class ContractService {

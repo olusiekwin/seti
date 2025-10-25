@@ -3,11 +3,13 @@
 import { Layout } from "@/components/Layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Clock, DollarSign, CheckCircle, XCircle, FileText } from "lucide-react"
+import { Clock, DollarSign, CheckCircle, XCircle, FileText, Receipt } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useUserPredictions } from "@/hooks/useUserPredictions"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { PredictionSlipModal } from "@/components/PredictionSlipModal"
+import { PredictionSlips } from "@/components/PredictionSlips"
+import { PredictionSlipSidebar } from "@/components/PredictionSlipSidebar"
 import { useState } from "react"
 
 export default function Activity() {
@@ -17,6 +19,7 @@ export default function Activity() {
     market: any
     prediction: any
   } | null>(null)
+  const [sidebarSlip, setSidebarSlip] = useState<any>(null)
   
   // All predictions are fetched from Supabase via backend
   const allPredictions = predictions
@@ -121,7 +124,27 @@ export default function Activity() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setSelectedSlip({ market: prediction.market, prediction })}
+              onClick={() => {
+                // Create slip data from prediction
+                const slipData = {
+                  id: prediction.id || prediction.transaction_hash,
+                  marketId: prediction.market_id,
+                  marketQuestion: prediction.market?.question || 'Market data unavailable',
+                  marketDescription: prediction.market?.description,
+                  outcome: prediction.outcome_label as 'YES' | 'NO',
+                  amount: prediction.amount,
+                  price: prediction.price / 1000000000, // Convert from smallest unit
+                  shares: prediction.shares || 0,
+                  timestamp: prediction.timestamp * 1000, // Convert to milliseconds
+                  transactionHash: prediction.transaction_hash,
+                  status: isResolved ? 'resolved' : (prediction.created_at ? 'confirmed' : 'pending'),
+                  winningOutcome: prediction.market?.winning_outcome === 1 ? 'YES' : prediction.market?.winning_outcome === 0 ? 'NO' : undefined,
+                  payout: isWon ? (prediction.shares || 0) : undefined,
+                  marketEndTime: prediction.market?.end_time ? prediction.market.end_time * 1000 : undefined,
+                  marketResolved: prediction.market?.resolved
+                }
+                setSidebarSlip(slipData)
+              }}
               className="gap-1 text-xs h-6"
             >
               <FileText className="w-3 h-3" />
@@ -147,6 +170,10 @@ export default function Activity() {
           <TabsList className="bg-muted/30 border border-border/50 w-full sm:w-auto">
             <TabsTrigger value="all">All Activity</TabsTrigger>
             <TabsTrigger value="trades">Trades</TabsTrigger>
+            <TabsTrigger value="slips" className="flex items-center gap-2">
+              <Receipt className="w-4 h-4" />
+              Prediction Slips
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4">
@@ -188,10 +215,21 @@ export default function Activity() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          <TabsContent value="slips" className="space-y-4">
+            <PredictionSlips />
+          </TabsContent>
         </Tabs>
       </div>
 
-      {/* Prediction Slip Modal */}
+      {/* Prediction Slip Sidebar */}
+      <PredictionSlipSidebar
+        isOpen={!!sidebarSlip}
+        onClose={() => setSidebarSlip(null)}
+        slipData={sidebarSlip}
+      />
+
+      {/* Prediction Slip Modal (Legacy) */}
       {selectedSlip && (
         <PredictionSlipModal
           isOpen={!!selectedSlip}

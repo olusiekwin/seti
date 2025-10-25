@@ -24,7 +24,7 @@
 
 @layer base {
   :root {
-    /* Core Market Theme */
+    /* Dark Mode (Default) */
     --background: 208, 52%, 16%;
     --foreground: 30, 10%, 98%;
 
@@ -71,7 +71,6 @@
 
     /* Market Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(--foreground), hsl(--foreground));
-  /* Use primary color for neon/gold-green gradient so it's driven by --primary */
     --gradient-neon: linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--foreground)));
     --gradient-blue: linear-gradient(135deg, hsl(208, 65%, 75%), hsl(208, 70%, 65%));
     --gradient-dark: linear-gradient(180deg, hsl(--background), hsl(--background));
@@ -84,6 +83,66 @@
     --shadow-market: 0 0 50px hsl(45, 100%, 70% / 0.1);
 
     --radius: 0.75rem;
+  }
+
+  /* Light Mode */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 8%;
+
+    /* Market Primary - Keep the same vibrant green */
+    --primary: 142, 92%, 50%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Success - Keep vibrant green */
+    --success: 140 70% 50%;
+    --success-foreground: 0 0% 100%;
+
+    /* Danger - Keep vibrant red */
+    --danger: 0 75% 60%;
+    --danger-foreground: 0 0% 100%;
+
+    /* Accent - Slightly darker blue for light mode */
+    --accent: 208 65% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Muted Elements - Light grays */
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 13% 40%;
+
+    /* Card & Surface Colors */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 8%;
+
+    /* Borders & Inputs */
+    --border: 220 13% 85%;
+    --input: 220 13% 95%;
+    --ring: 208 65% 60%;
+
+    /* Secondary Elements */
+    --secondary: 220 13% 95%;
+    --secondary-foreground: 220 13% 8%;
+
+    /* Popover Elements */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 8%;
+
+    /* Destructive Elements */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Light Mode Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(45, 100%, 70%), hsl(45, 100%, 60%));
+    --gradient-neon: linear-gradient(135deg, hsl(142, 92%, 50%), hsl(140, 70%, 50%));
+    --gradient-blue: linear-gradient(135deg, hsl(208, 65%, 60%), hsl(208, 70%, 50%));
+    --gradient-dark: linear-gradient(180deg, hsl(0, 0%, 100%), hsl(220, 13%, 95%));
+
+    /* Light Mode Glows & Shadows */
+    --glow-gold: 0 0 20px hsl(45, 100%, 70% / 0.2);
+    --glow-success: 0 0 15px hsl(140, 70%, 50% / 0.3);
+    --glow-danger: 0 0 15px hsl(0, 75%, 60% / 0.3);
+    --shadow-elegant: 0 4px 20px -4px hsl(220, 13%, 20% / 0.3);
+    --shadow-market: 0 0 30px hsl(45, 100%, 70% / 0.1);
   }
 }
 

@@ -14,6 +14,26 @@ export default function Profile() {
   const { isConnected, address, isConnecting, isReady, shouldShowConnectPrompt, isWalletReady } = useWalletConnection()
   const currentAccount = address ? { address } : null
   const [copied, setCopied] = useState(false)
+  
+  // Notification settings state
+  const [notifications, setNotifications] = useState({
+    marketUpdates: true,
+    positionAlerts: true,
+    marketResolution: true
+  })
+  
+  // Profile settings state
+  const [profile, setProfile] = useState({
+    username: '',
+    bio: ''
+  })
+  
+  // Settings state
+  const [settings, setSettings] = useState({
+    darkMode: true,
+    autoConnect: true,
+    currency: 'USD'
+  })
 
   const copyAddress = async () => {
     if (currentAccount?.address) {
@@ -21,6 +41,48 @@ export default function Profile() {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+  }
+
+  // Handler functions
+  const handleSaveProfile = () => {
+    // Save profile settings to localStorage
+    localStorage.setItem('seti_profile', JSON.stringify(profile))
+    alert('Profile saved successfully!')
+  }
+
+  const handleNotificationToggle = (key: keyof typeof notifications) => {
+    setNotifications(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+    // Save to localStorage
+    localStorage.setItem('seti_notifications', JSON.stringify({
+      ...notifications,
+      [key]: !notifications[key]
+    }))
+  }
+
+  const handleSettingsToggle = (key: keyof typeof settings) => {
+    setSettings(prev => ({
+      ...prev,
+      [key]: !prev[key]
+    }))
+    // Save to localStorage
+    localStorage.setItem('seti_settings', JSON.stringify({
+      ...settings,
+      [key]: !settings[key]
+    }))
+  }
+
+  const handleCurrencyChange = (currency: string) => {
+    setSettings(prev => ({
+      ...prev,
+      currency
+    }))
+    localStorage.setItem('seti_settings', JSON.stringify({
+      ...settings,
+      currency
+    }))
   }
 
   // Show loading state while wallet is initializing
@@ -127,13 +189,30 @@ export default function Profile() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username (Optional)</Label>
-                  <Input id="username" placeholder="Enter username" className="bg-muted/30" />
+                  <Input 
+                    id="username" 
+                    placeholder="Enter username" 
+                    className="bg-muted/30" 
+                    value={profile.username}
+                    onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio (Optional)</Label>
-                  <Input id="bio" placeholder="Tell us about yourself" className="bg-muted/30" />
+                  <Input 
+                    id="bio" 
+                    placeholder="Tell us about yourself" 
+                    className="bg-muted/30" 
+                    value={profile.bio}
+                    onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+                  />
                 </div>
-                <Button className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105">Save Changes</Button>
+                <Button 
+                  onClick={handleSaveProfile}
+                  className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background transition-all duration-200 hover:scale-105"
+                >
+                  Save Changes
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -151,8 +230,13 @@ export default function Profile() {
                     <div className="font-medium">Dark Mode</div>
                     <div className="text-sm text-muted-foreground">Use dark theme</div>
                   </div>
-                  <Button variant="outline" size="sm" className="hover:bg-[hsl(208,65%,75%)] hover:text-background border-[hsl(208,65%,75%)]">
-                    Enabled
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleSettingsToggle('darkMode')}
+                    className={`${settings.darkMode ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                  >
+                    {settings.darkMode ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border/20">
@@ -160,8 +244,13 @@ export default function Profile() {
                     <div className="font-medium">Auto-connect Wallet</div>
                     <div className="text-sm text-muted-foreground">Automatically connect on visit</div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    Enabled
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleSettingsToggle('autoConnect')}
+                    className={`${settings.autoConnect ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                  >
+                    {settings.autoConnect ? 'Enabled' : 'Disabled'}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between py-3">
@@ -169,9 +258,19 @@ export default function Profile() {
                     <div className="font-medium">Show Prices in</div>
                     <div className="text-sm text-muted-foreground">Display currency preference</div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    USD
-                  </Button>
+                  <div className="flex gap-2">
+                    {['USD', 'EUR', 'BTC'].map(currency => (
+                      <Button 
+                        key={currency}
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleCurrencyChange(currency)}
+                        className={`${settings.currency === currency ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                      >
+                        {currency}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -208,8 +307,13 @@ export default function Profile() {
                     <div className="font-medium">Market Updates</div>
                     <div className="text-sm text-muted-foreground">Get notified about market changes</div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    On
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleNotificationToggle('marketUpdates')}
+                    className={`${notifications.marketUpdates ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                  >
+                    {notifications.marketUpdates ? 'On' : 'Off'}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-border/20">
@@ -217,8 +321,13 @@ export default function Profile() {
                     <div className="font-medium">Position Alerts</div>
                     <div className="text-sm text-muted-foreground">Alerts for your active positions</div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    On
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleNotificationToggle('positionAlerts')}
+                    className={`${notifications.positionAlerts ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                  >
+                    {notifications.positionAlerts ? 'On' : 'Off'}
                   </Button>
                 </div>
                 <div className="flex items-center justify-between py-3">
@@ -226,8 +335,13 @@ export default function Profile() {
                     <div className="font-medium">Market Resolution</div>
                     <div className="text-sm text-muted-foreground">When markets you're in resolve</div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    On
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleNotificationToggle('marketResolution')}
+                    className={`${notifications.marketResolution ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                  >
+                    {notifications.marketResolution ? 'On' : 'Off'}
                   </Button>
                 </div>
               </CardContent>

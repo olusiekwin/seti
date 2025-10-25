@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react"
 import { MarketCard } from "@/components/MarketCard"
 import { MarketCardSkeleton } from "@/components/MarketCardSkeleton"
-import { MarketSlideshow } from "@/components/MarketSlideshow"
 import { SharedPredictionModal, PredictionReceiptModal } from "@/components/SharedPredictionModal"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { Button } from "@/components/ui/button"
@@ -10,12 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowRight, Plus, TrendingUp, Search, Filter, Bookmark } from "lucide-react"
 import { useMarkets } from "@/hooks/useMarkets"
 import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
+import { useFavorites } from "@/hooks/useFavorites"
+import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { Layout } from "@/components/Layout"
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
+  const [showFilter, setShowFilter] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+  
+  const { isConnected } = useWalletConnection()
   
   // Use backend filtering instead of frontend filtering
   const { markets, isLoading, error, refetch } = useMarkets({
@@ -24,6 +29,8 @@ const Index = () => {
     search: searchQuery || undefined,
     status: 'active'
   })
+  
+  const { favorites, isFavorite } = useFavorites()
   
   const {
     isOpen,
@@ -47,8 +54,10 @@ const Index = () => {
     return () => window.removeEventListener('marketSearch', handleSearch);
   }, []);
 
-  // No need for frontend filtering since backend handles it
-  const filteredMarkets = markets;
+  // Filter markets based on saved state
+  const filteredMarkets = showSaved 
+    ? markets.filter(market => isFavorite(market.id))
+    : markets;
 
   return (
     <Layout>
@@ -96,37 +105,77 @@ const Index = () => {
                     />
                   </div>
                   <div className="flex items-center text-muted-foreground px-2">|</div>
-                  <button className="flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors">
+                  <button 
+                    className={`flex items-center px-3 transition-colors ${
+                      showFilter 
+                        ? 'text-[hsl(208,65%,75%)] bg-[hsl(208,65%,75%)]/10' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => setShowFilter(!showFilter)}
+                  >
                     <Filter className="w-4 h-4 mr-1" />
                     Filter
                   </button>
-                  <button className="flex items-center px-3 text-muted-foreground hover:text-foreground transition-colors">
+                  <button 
+                    className={`flex items-center px-3 transition-colors ${
+                      showSaved 
+                        ? 'text-[hsl(208,65%,75%)] bg-[hsl(208,65%,75%)]/10' 
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => setShowSaved(!showSaved)}
+                  >
                     <Bookmark className="w-4 h-4 mr-1" />
-                    Saved
+                    Saved {showSaved && `(${filteredMarkets.length})`}
                   </button>
                   <div className="flex items-center text-muted-foreground px-2">|</div>
                   <button className="bg-[hsl(208,65%,75%)] text-background px-3 py-1 rounded-md text-sm font-medium">
                     Active
                   </button>
                   <div className="flex items-center gap-2 px-3 overflow-x-auto scrollbar-hide">
-                    {markets.slice(0, 8).map((market, index) => (
-                      <button 
-                        key={market.id} 
-                        className="text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-                        onClick={() => {
-                          const searchEvent = new CustomEvent('marketSearch', {
-                            detail: { query: market.question.toLowerCase() }
-                          });
-                          window.dispatchEvent(searchEvent);
-                        }}
-                      >
-                        {market.question.length > 15 ? market.question.substring(0, 15) + '...' : market.question}
-                      </button>
-                    ))}
+                    <span className="text-xs text-muted-foreground">
+                      {markets.length} markets
+                    </span>
                     <ArrowRight className="w-3 h-3 text-muted-foreground" />
                   </div>
                 </div>
               </div>
+
+              {/* Filter Dropdown */}
+              {showFilter && (
+                <div className="bg-muted/30 border border-border/50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">Sort by:</label>
+                      <select 
+                        value={sortBy} 
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-background border border-border rounded px-2 py-1 text-sm"
+                      >
+                        <option value="created_timestamp">Newest</option>
+                        <option value="volume_24h">Volume</option>
+                        <option value="total_liquidity">Liquidity</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium">Status:</label>
+                      <select 
+                        className="bg-background border border-border rounded px-2 py-1 text-sm"
+                        defaultValue="active"
+                      >
+                        <option value="active">Active</option>
+                        <option value="resolved">Resolved</option>
+                      </select>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowFilter(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Sorting Controls */}
               <div className="flex items-center justify-between mt-4 mb-6">
@@ -173,24 +222,45 @@ const Index = () => {
                     <Button
                       className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background gap-2"
                       onClick={() => {
-                        window.scrollTo({ top: 0, behavior: "smooth" })
-                        setTimeout(() => {
-                          alert(
-                            'Please connect your wallet first using the "Connect Wallet" button in the header to create markets',
-                          )
-                        }, 500)
+                        if (!isConnected) {
+                          window.scrollTo({ top: 0, behavior: "smooth" })
+                          setTimeout(() => {
+                            alert(
+                              'Please connect your wallet first using the "Connect Wallet" button in the header to create markets',
+                            )
+                          }, 500)
+                        } else {
+                          // Wallet is connected, allow creating market
+                          window.scrollTo({ top: 0, behavior: "smooth" })
+                          // You can add logic here to open a create market modal or navigate to create market page
+                          alert('Wallet is connected! You can now create markets.')
+                        }
                       }}
                     >
                       <Plus className="w-4 h-4" />
-                      Connect Wallet to Create Market
+                      {isConnected ? 'Create Market' : 'Connect Wallet to Create Market'}
                     </Button>
                   </div>
                 ) : (
                   <div>
+                    {showSaved && (
+                      <div className="mb-4 p-3 bg-[hsl(208,65%,75%)]/10 border border-[hsl(208,65%,75%)]/20 rounded-lg">
+                        <p className="text-sm text-[hsl(208,65%,75%)]">
+                          📌 Showing {filteredMarkets.length} saved market{filteredMarkets.length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                    )}
                     {filteredMarkets.length === 0 ? (
                       <div className="text-center py-12">
-                        <h3 className="text-xl font-semibold mb-2">No markets found</h3>
-                        <p className="text-muted-foreground">Try adjusting your search terms</p>
+                        <h3 className="text-xl font-semibold mb-2">
+                          {showSaved ? 'No saved markets' : 'No markets found'}
+                        </h3>
+                        <p className="text-muted-foreground">
+                          {showSaved 
+                            ? 'Save some markets by clicking the bookmark icon on market cards' 
+                            : 'Try adjusting your search terms'
+                          }
+                        </p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">

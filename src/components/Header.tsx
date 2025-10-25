@@ -1,13 +1,11 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Search, Plus, User, BarChart3, Activity, ChevronDown } from "lucide-react"
+import { Search, Plus, User, BarChart3, Activity, ChevronDown, Bell } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
-import { WalletModal } from "./WalletModal"
 import { Link, useLocation } from "react-router-dom"
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "./ThemeToggle"
 import { useWalletConnection } from '@/hooks/useWalletConnection'
+import { useDisconnect } from 'wagmi'
+import { WalletModal } from "./WalletModal"
+import { NotificationDropdown } from './NotificationDropdown'
 
 import { useScroll } from '@/hooks/use-scroll'
 
@@ -25,7 +26,6 @@ export function Header() {
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { isConnected, address } = useWalletConnection()
-  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
 
   return (
@@ -85,6 +85,9 @@ export function Header() {
                 <span className="sm:hidden">Create</span>
               </Button>
             )}
+
+            {/* Notifications Dropdown */}
+            <NotificationDropdown />
 
             {/* Wallet Connection */}
             {!isConnected ? (

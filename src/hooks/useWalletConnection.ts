@@ -2,7 +2,7 @@ import { useAccount } from 'wagmi'
 import { useEffect, useState } from 'react'
 
 export function useWalletConnection() {
-  const { address, isConnected, isConnecting } = useAccount()
+  const { address, isConnected, isConnecting, status } = useAccount()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
@@ -14,24 +14,30 @@ export function useWalletConnection() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Debug logging
+  // Debug logging - only log when state actually changes
   useEffect(() => {
-    console.log('Wallet Connection State:', {
-      isConnected,
-      address,
-      isConnecting,
-      isReady
-    })
-  }, [isConnected, address, isConnecting, isReady])
+    if (isReady) {
+      console.log('Wallet Connection State:', {
+        isConnected,
+        address: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined,
+        isConnecting,
+        status
+      })
+    }
+  }, [isConnected, address, isConnecting, isReady, status])
+
+  // Determine if we're actually connecting or just in a pending state
+  const actuallyConnecting = isConnecting && status === 'connecting'
+  const isDisconnected = !isConnected && !actuallyConnecting
 
   return {
     isConnected,
     address,
-    isConnecting,
-    isDisconnected: !isConnected,
+    isConnecting: actuallyConnecting,
+    isDisconnected,
     isReady,
     // Helper to check if we should show wallet connection prompt
-    shouldShowConnectPrompt: isReady && !isConnecting && !isConnected,
+    shouldShowConnectPrompt: isReady && !actuallyConnecting && !isConnected,
     // Helper to check if wallet is ready and connected
     isWalletReady: isReady && isConnected && !!address
   }

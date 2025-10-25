@@ -104,7 +104,11 @@ export function formatTimeRemaining(endTime: number): string {
 }
 
 // Helper function to format volume
-export function formatVolume(volume: number): string {
+export function formatVolume(volume: number | undefined | null): string {
+  if (volume === undefined || volume === null || isNaN(volume)) {
+    return '0';
+  }
+  
   if (volume >= 1000000) {
     return `${(volume / 1000000).toFixed(1)}M`;
   } else if (volume >= 1000) {
