@@ -14,7 +14,7 @@ const queryClient = new QueryClient()
 const wagmiConfig = createConfig({
   chains: [base],
   transports: {
-    [base.id]: http(),
+    [base.id]: http('https://mainnet.base.org'),
   },
 })
 
@@ -24,7 +24,6 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <WagmiProvider config={wagmiConfig}>
         <QueryClientProvider client={queryClient}>
           <OnchainKitProvider
-            apiKey="seti-prediction-markets-dev"
             chain={base}
             config={{
               appearance: { mode: 'auto' },
