@@ -18,9 +18,9 @@ export function MarketCard({ market, trending }: MarketCardProps) {
   const { timeLeft, isEnded, isUrgent } = useCountdown(market.end_time)
   const volume = formatVolume(market.volume_24h)
 
-  // Convert SUI to USD (assuming 1 SUI = $1 for demo)
-  const SUI_TO_USD = 1
-  const liquidityUSD = ((market.total_liquidity || 0) / 1_000_000_000) * SUI_TO_USD
+  // Convert ETH to USD (assuming 1 ETH = $2000 for demo)
+  const ETH_TO_USD = 2000
+  const liquidityUSD = ((market.total_liquidity || 0) / 1_000_000_000) * ETH_TO_USD
 
   const { openModal } = usePredictionModalContext()
   const { isFavorite, toggleFavorite } = useFavorites()

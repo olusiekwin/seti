@@ -104,14 +104,14 @@ export default function Activity() {
                 <Clock className="w-3 h-3" />
                 {new Date(prediction.timestamp * 1000).toLocaleString()}
               </span>
-              <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} SUI</span>
+              <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} ETH</span>
               {isResolved && prediction.created_at && (
                 <span>Date: {new Date(prediction.created_at).toLocaleDateString()}</span>
               )}
             </div>
           </div>
           <div className="text-right flex flex-col items-end gap-2">
-            <div className="text-sm font-bold text-foreground">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
+            <div className="text-sm font-bold text-foreground">{(prediction.amount / 1000000000).toFixed(2)} ETH</div>
             {isActive ? (
               <div className="text-xs text-muted-foreground">
                 {prediction.outcome_label} @ {(prediction.price / 1000000000).toFixed(2)}

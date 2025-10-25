@@ -26,14 +26,36 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     }
   }
 
-  // Get wallet icon from OnchainKit's built-in wallet objects
+  // Get wallet icon with proper fallback logic
   const getWalletIcon = (connectorName: string) => {
-    // OnchainKit provides preconfigured wallet objects with .logo property
-    const wallet = wallets?.find(w => 
+    // First try OnchainKit's built-in wallet objects
+    const onchainWallet = wallets?.find(w => 
       w.name.toLowerCase().includes(connectorName.toLowerCase()) ||
       connectorName.toLowerCase().includes(w.name.toLowerCase())
     )
-    return wallet?.logo || null
+    
+    if (onchainWallet?.logo) {
+      return onchainWallet.logo
+    }
+
+    // Fallback to hardcoded wallet logos for major wallets
+    const walletLogos: Record<string, string> = {
+      'metamask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
+      'coinbase': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
+      'coinbase wallet': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
+      'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4',
+      'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
+      'brave': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'brave wallet': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'trust': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
+      'trust wallet': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
+      'frame': 'https://frame.sh/favicon.ico',
+      'rabby': 'https://rabby.io/favicon.ico',
+      'enkrypt': 'https://enkrypt.com/favicon.ico'
+    }
+
+    const normalizedName = connectorName.toLowerCase().trim()
+    return walletLogos[normalizedName] || null
   }
 
   return (

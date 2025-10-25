@@ -1,11 +1,9 @@
-// TypeScript types matching the Sui contract structure
-import { SuiObjectData } from '@mysten/sui/client';
+// TypeScript types matching the Ethereum contract structure
 
 // Environment configuration
-export const PACKAGE_ID =
-  (import.meta as any).env?.VITE_PACKAGE_ID ||
-  (import.meta as any).env?.VITE_SUI_PACKAGE_ID ||
-  '0x9fb4dbbd21acb0e9c3f61a6f7bf91a098ebd772f87e764fcdfe582069936fdcb';
+export const CONTRACT_ADDRESS =
+  (import.meta as any).env?.VITE_CONTRACT_ADDRESS ||
+  '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b';
 export const MODULE = 'polymarket';
 
 // Market data interface matching the Move struct exactly
@@ -18,8 +16,8 @@ export interface MarketData {
   resolved: boolean;
   winning_outcome: number; // 0 = false, 1 = true, 2 = invalid/canceled
   total_liquidity: number; // u64
-  outcome_a_shares: number; // Balance<SUI> converted to number
-  outcome_b_shares: number; // Balance<SUI> converted to number
+  outcome_a_shares: number; // Wei converted to number
+  outcome_b_shares: number; // Wei converted to number
   liquidity_providers: any; // Bag - complex type, will be handled separately
   volume_24h: number; // u64
   created_timestamp: number; // u64
@@ -53,7 +51,7 @@ export interface CreateMarketParams {
   category: string;
   imageUrl: string;
   tags: string[];
-  initialLiquiditySui: number; // SUI amount (will be converted to MIST)
+  initialLiquidityEth: number; // ETH amount (will be converted to Wei)
 }
 
 export interface MarketCreated {
