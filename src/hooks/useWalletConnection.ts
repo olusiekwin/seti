@@ -1,9 +1,8 @@
+import { useAccount } from 'wagmi'
 import { useEffect, useState } from 'react'
 
 export function useWalletConnection() {
-  const [isConnected, setIsConnected] = useState(false)
-  const [address, setAddress] = useState<string | undefined>(undefined)
-  const [isConnecting, setIsConnecting] = useState(false)
+  const { address, isConnected, isConnecting } = useAccount()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
