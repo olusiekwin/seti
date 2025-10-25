@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
 import { Market, calculatePrices, formatTimeRemaining } from "@/types/contract";
-import { useCurrentWallet } from '@mysten/dapp-kit';
+// Removed Sui import - using wagmi instead
 import { usePrediction } from "@/hooks/usePrediction";
 
 interface PredictionModalProps {

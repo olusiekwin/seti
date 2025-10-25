@@ -36,11 +36,11 @@ export function MarketCard({ market, trending }: MarketCardProps) {
   }
 
   return (
-    <div className="market-card group p-6 w-full max-w-sm mx-auto bg-gradient-to-br from-slate-900/90 to-slate-800/90 border border-slate-700/50 rounded-xl transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 backdrop-blur-sm">
-      {/* Market Header with Image and Progress Meter */}
-      <div className="flex items-start gap-4 mb-6">
+    <div className="market-card group p-5 w-full max-w-sm mx-auto bg-gradient-to-br from-slate-900/95 to-slate-800/95 border border-slate-700/60 rounded-2xl transition-all duration-300 hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-500/20 backdrop-blur-sm hover:scale-[1.02]">
+      {/* Market Header */}
+      <div className="flex items-start gap-4 mb-5">
         {/* Market Icon */}
-        <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
+        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
           {market.image_url ? (
             <img
               src={market.image_url}
@@ -49,46 +49,19 @@ export function MarketCard({ market, trending }: MarketCardProps) {
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <BarChart3 className="w-7 h-7 text-white" />
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
           )}
         </div>
 
-        {/* Market Question and Progress Meter */}
+        {/* Market Question */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold text-white group-hover:text-blue-100 transition-all duration-300 leading-tight line-clamp-2 mb-3">
+          <h3 className="text-lg font-bold text-white group-hover:text-blue-100 transition-all duration-300 leading-tight line-clamp-2 mb-3">
             {market.question}
           </h3>
           
-          {/* Enhanced Circular Progress Meter */}
-          <div className="flex items-center gap-4">
-            <div className="relative w-16 h-16">
-              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
-                <path
-                  className="text-slate-600"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  fill="none"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                <path
-                  className={`${yesPrice > 70 ? 'text-green-400' : yesPrice > 40 ? 'text-yellow-400' : 'text-red-400'}`}
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  fill="none"
-                  strokeDasharray={`${yesPrice}, 100`}
-                  strokeLinecap="round"
-                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold text-white">{yesPrice}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Enhanced Market Status */}
-          <div className="mt-3 flex items-center gap-2">
+          {/* Market Status */}
+          <div className="flex items-center gap-2">
             {market.resolved ? (
               <div className="inline-flex items-center gap-1 bg-green-500/20 text-green-400 text-xs px-3 py-1.5 rounded-full border border-green-500/30">
                 <div className="w-2 h-2 bg-green-400 rounded-full"></div>

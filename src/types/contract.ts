@@ -3,7 +3,7 @@
 // Environment configuration
 export const CONTRACT_ADDRESS =
   (import.meta as any).env?.VITE_CONTRACT_ADDRESS ||
-  '0x63c0c19a282a1b52b07dd5a65b58948a07dae32b';
+  '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B';
 export const MODULE = 'polymarket';
 
 // Market data interface matching the Move struct exactly

@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "./ThemeToggle"
 import { useWalletConnection } from '@/hooks/useWalletConnection'
-import { useDisconnect } from 'wagmi'
+import { useDisconnect, useBalance } from 'wagmi'
 import { WalletModal } from "./WalletModal"
 import { NotificationDropdown } from './NotificationDropdown'
 
@@ -27,6 +27,9 @@ export function Header() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { isConnected, address } = useWalletConnection()
   const { disconnect } = useDisconnect()
+  const { data: balance } = useBalance({
+    address: address,
+  })
 
   return (
     <div className="flex flex-col">
@@ -98,10 +101,16 @@ export function Header() {
                 Connect Wallet
               </Button>
             ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {address?.slice(0, 6)}...{address?.slice(-4)}
-                </span>
+              <div className="flex items-center gap-3">
+                {/* Balance Display */}
+                <div className="flex flex-col items-end">
+                  <div className="text-sm font-medium text-foreground">
+                    {balance ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}` : 'Loading...'}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {address?.slice(0, 6)}...{address?.slice(-4)}
+                  </div>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
