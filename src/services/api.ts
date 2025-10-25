@@ -1,7 +1,10 @@
 /**
  * API Service for connecting to Seti Backend
  * Web2.5 Architecture: Fast backend queries + Blockchain settlement
+ * Uses single contract service - no duplication
  */
+
+import { contractService } from './contract'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
