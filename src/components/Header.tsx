@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
 import { Link, useLocation } from "react-router-dom"
-import { Connected } from '@coinbase/onchainkit'
+import { ConnectWallet } from '@coinbase/onchainkit/wallet'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -82,8 +82,8 @@ export function Header() {
               </Button>
             )}
 
-            {/* OnchainKit Connected Component */}
-            <Connected />
+            {/* OnchainKit ConnectWallet Component */}
+            <ConnectWallet />
 
             {/* User Menu Dropdown - Only shown when connected, positioned after wallet */}
             {isConnected && (
