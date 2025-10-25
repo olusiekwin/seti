@@ -1,244 +1,108 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { X, Wallet, ExternalLink } from "lucide-react";
-import { useWallets, useConnectWallet } from '@mysten/dapp-kit';
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useConnect } from 'wagmi'
+import { Wallet, ExternalLink } from 'lucide-react'
 
 interface WalletModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
 }
 
 export function WalletModal({ isOpen, onClose }: WalletModalProps) {
-  const wallets = useWallets();
-  const { mutate: connect } = useConnectWallet();
-  const [detectedWallets, setDetectedWallets] = useState<any[]>([]);
+  const { connect, connectors, isPending } = useConnect()
+  const [connectingWallet, setConnectingWallet] = useState<string | null>(null)
 
-  useEffect(() => {
-    // Show all wallets detected by dapp-kit
-    if (isOpen) {
-      console.log('Available wallets from dapp-kit:', wallets.map(w => ({
-        name: w.name,
-        features: w.features,
-        version: w.version
-      })));
-      
-      // Map wallets to UI format
-      const walletList = wallets.map(w => ({
-        name: w.name,
-        icon: getWalletIcon(w.name),
-        installed: true,
-        wallet: w
-      }));
-      
-      // Always show both Sui and Ethereum wallet options
-      walletList.push(
-        // Sui Wallets
-        {
-          name: 'Sui Wallet',
-          icon: '🟡',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil',
-          type: 'sui'
-        },
-        {
-          name: 'Suiet',
-          icon: '🔵',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd',
-          type: 'sui'
-        },
-        {
-          name: 'Ethos',
-          icon: '⚪',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/ethos-sui-wallet/mcbigmjiafegjnnogedioegffbooigli',
-          type: 'sui'
-        },
-        // Ethereum Wallets
-        {
-          name: 'MetaMask',
-          icon: '🦊',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn',
-          type: 'ethereum'
-        },
-        {
-          name: 'WalletConnect',
-          icon: '🔗',
-          installed: false,
-          downloadUrl: 'https://walletconnect.com/',
-          type: 'ethereum'
-        },
-        {
-          name: 'Coinbase Wallet',
-          icon: '🔵',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/coinbase-wallet-extension/hnfanknocfeofbddgcijnmhnfnkdnaad',
-          type: 'ethereum'
-        },
-        {
-          name: 'Trust Wallet',
-          icon: '🛡️',
-          installed: false,
-          downloadUrl: 'https://chrome.google.com/webstore/detail/trust-wallet/egjidjbpglichdcondbcbdnbeeppgdph',
-          type: 'ethereum'
-        }
-      );
-      
-      setDetectedWallets(walletList);
+  const handleWalletConnect = async (connector: any) => {
+    try {
+      setConnectingWallet(connector.name)
+      await connect({ connector })
+      onClose()
+    } catch (error) {
+      console.error('Wallet connection failed:', error)
+      setConnectingWallet(null)
     }
-  }, [isOpen, wallets]);
-  
-  const getWalletIcon = (name: string): string => {
-    const nameLower = name.toLowerCase();
-    // Sui Wallets
-    if (nameLower.includes('sui wallet')) return '🟡';
-    if (nameLower.includes('suiet')) return '🔵';
-    if (nameLower.includes('ethos')) return '⚪';
-    if (nameLower.includes('martian')) return '🔴';
-    if (nameLower.includes('glass')) return '💎';
-    if (nameLower.includes('morphis')) return '🟣';
-    // Ethereum Wallets
-    if (nameLower.includes('metamask')) return '🦊';
-    if (nameLower.includes('walletconnect')) return '🔗';
-    if (nameLower.includes('coinbase')) return '🔵';
-    if (nameLower.includes('trust')) return '🛡️';
-    if (nameLower.includes('rainbow')) return '🌈';
-    if (nameLower.includes('phantom')) return '👻';
-    return '💼';
-  };
+  }
 
-  if (!isOpen) return null;
-
-  const handleWalletSelect = (wallet: any) => {
-    // If wallet object is provided directly (from dapp-kit)
-    if (wallet.wallet) {
-      console.log('Connecting to wallet:', wallet.wallet.name);
-      connect(
-        { wallet: wallet.wallet },
-        {
-          onSuccess: () => {
-            console.log('✅ Wallet connected successfully!');
-            localStorage.setItem('lastConnectedWallet', wallet.wallet.name);
-            onClose();
-          },
-          onError: (error) => {
-            console.error('❌ Wallet connection failed:', error);
-            alert(`Failed to connect to ${wallet.wallet.name}. Please try again or check if the wallet extension is unlocked.`);
-          }
-        }
-      );
-      return;
+  const getWalletIcon = (name: string) => {
+    switch (name.toLowerCase()) {
+      case 'metamask':
+        return '🦊'
+      case 'coinbase wallet':
+        return '🔵'
+      case 'walletconnect':
+        return '🔗'
+      case 'rainbow':
+        return '🌈'
+      case 'trust wallet':
+        return '🛡️'
+      case 'brave wallet':
+        return '🦁'
+      default:
+        return '👛'
     }
-    
-    // For install options (wallet not detected)
-    if (wallet.downloadUrl && !wallet.installed) {
-      window.open(wallet.downloadUrl, '_blank');
-      return;
-    }
-    
-    // Fallback: try to find any wallet
-    if (wallets.length > 0) {
-      console.log('Attempting to connect to first available wallet:', wallets[0].name);
-      connect({ wallet: wallets[0] });
-      onClose();
-    }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 min-h-screen">
-      <div className="bg-background rounded-lg shadow-xl max-w-md w-full mx-auto my-auto max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">
-              Connect Wallet
-            </h2>
-            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-[hsl(208,65%,75%)] hover:text-background">
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {wallets.length > 0 ? (
-              wallets.map((wallet, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start h-16 text-left"
-                  onClick={() => handleWalletSelect(wallet)}
-                >
-                  <div className="flex items-center gap-3">
-                    <Wallet className="w-6 h-6" />
-                    <div className="flex-1">
-                      <div className="font-medium">{wallet.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Ready to connect
-                      </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            Connect Wallet
+          </DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-3">
+          {connectors.length === 0 ? (
+            <div className="text-center py-8">
+              <Wallet className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">
+                No wallet connectors available. Please install a wallet extension.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => window.open('https://metamask.io/download/', '_blank')}
+                className="w-full"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Install MetaMask
+              </Button>
+            </div>
+          ) : (
+            connectors.map((connector) => (
+              <Button
+                key={connector.uid}
+                variant="outline"
+                className="w-full h-auto p-4 flex items-center justify-between hover:bg-muted/50"
+                onClick={() => handleWalletConnect(connector)}
+                disabled={isPending || connectingWallet === connector.name}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">
+                    {getWalletIcon(connector.name)}
+                  </span>
+                  <div className="text-left">
+                    <div className="font-medium">{connector.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Connect using {connector.name}
                     </div>
                   </div>
-                </Button>
-              ))
-            ) : detectedWallets.length > 0 ? (
-              detectedWallets.map((wallet, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  className="w-full justify-start h-16 text-left"
-                  onClick={() => handleWalletSelect(wallet)}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{wallet.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium">{wallet.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Click to connect
-                      </div>
-                    </div>
-                  </div>
-                </Button>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <Wallet className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No wallets detected</h3>
-                <p className="text-muted-foreground mb-4">
-                  Please install a Sui wallet extension to continue.
-                </p>
-                <div className="space-y-3">
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open('https://chrome.google.com/webstore/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil', '_blank')}
-                  >
-                    <span className="mr-2">🟡</span>
-                    Install Sui Wallet
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open('https://chrome.google.com/webstore/detail/suiet-sui-wallet/khpkpbbcccdmmclmpigdgddabeilkdpd', '_blank')}
-                  >
-                    <span className="mr-2">🔵</span>
-                    Install Suiet
-                    <ExternalLink className="w-4 h-4 ml-2" />
-                  </Button>
                 </div>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-6 pt-4 border-t border-border/20">
-            <Button
-              variant="outline"
-              onClick={onClose}
-              className="w-full transition-all duration-200 hover:scale-105"
-            >
-              Cancel
-            </Button>
-          </div>
+                {connectingWallet === connector.name ? (
+                  <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full" />
+                ) : (
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                )}
+              </Button>
+            ))
+          )}
         </div>
-      </div>
-    </div>
-  );
+
+        <div className="text-xs text-muted-foreground text-center pt-4 border-t">
+          By connecting a wallet, you agree to our Terms of Service and Privacy Policy.
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
 }

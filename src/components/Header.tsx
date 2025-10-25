@@ -5,17 +5,9 @@ import { Search, Plus, User, BarChart3, Activity, ChevronDown } from "lucide-rea
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
+import { WalletModal } from "./WalletModal"
 import { Link, useLocation } from "react-router-dom"
-import { useAccount, useDisconnect } from 'wagmi'
-import { 
-  ConnectWallet,
-  Wallet,
-  WalletDropdown,
-  WalletAdvancedAddressDetails,
-  WalletAdvancedTokenHoldings,
-  WalletAdvancedTransactionActions,
-  WalletAdvancedWalletActions,
-} from '@coinbase/onchainkit/wallet'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +23,10 @@ export function Header() {
   const location = useLocation()
   const { scrollDirection } = useScroll()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const { isConnected, address } = useWalletConnection()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
 
   return (
     <div className="flex flex-col">
@@ -91,16 +86,29 @@ export function Header() {
               </Button>
             )}
 
-            {/* OnchainKit Wallet Component */}
-            <Wallet>
-              <ConnectWallet />
-              <WalletDropdown>
-                <WalletAdvancedWalletActions />
-                <WalletAdvancedAddressDetails />
-                <WalletAdvancedTransactionActions />
-                <WalletAdvancedTokenHoldings />
-              </WalletDropdown>
-            </Wallet>
+            {/* Wallet Connection */}
+            {!isConnected ? (
+              <Button
+                onClick={() => setIsWalletModalOpen(true)}
+                className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background rounded-xl"
+              >
+                Connect Wallet
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {address?.slice(0, 6)}...{address?.slice(-4)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => disconnect()}
+                  className="rounded-xl"
+                >
+                  Disconnect
+                </Button>
+              </div>
+            )}
 
             {/* User Menu Dropdown - Only shown when connected, positioned after wallet */}
             {isConnected && (
@@ -159,6 +167,10 @@ export function Header() {
         }}
       />
 
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+      />
     </div>
   )
 }
