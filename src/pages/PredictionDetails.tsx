@@ -144,7 +144,7 @@ export default function PredictionDetails() {
 
                   <div>
                     <div className="text-sm text-muted-foreground mb-1">Amount Invested</div>
-                    <div className="text-2xl font-bold text-foreground">{prediction.amount} SUI</div>
+                    <div className="text-2xl font-bold text-foreground">{prediction.amount} ETH</div>
                   </div>
 
                   <div>
@@ -160,8 +160,8 @@ export default function PredictionDetails() {
                     </div>
                     <div className="text-2xl font-bold text-gradient-gold">
                       {isActive
-                        ? `${prediction.potentialPayout.toFixed(2)} SUI`
-                        : `${(prediction.actualPayout || 0).toFixed(2)} SUI`}
+                        ? `${prediction.potentialPayout.toFixed(2)} ETH`
+                        : `${(prediction.actualPayout || 0).toFixed(2)} ETH`}
                     </div>
                   </div>
 
@@ -170,7 +170,7 @@ export default function PredictionDetails() {
                       <div className="text-sm text-muted-foreground mb-1">Profit/Loss</div>
                       <div className={`text-2xl font-bold ${profit >= 0 ? "text-success" : "text-danger"}`}>
                         {profit >= 0 ? "+" : ""}
-                        {profit.toFixed(2)} SUI
+                        {profit.toFixed(2)} ETH
                       </div>
                     </div>
                   )}

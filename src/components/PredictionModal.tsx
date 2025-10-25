@@ -52,7 +52,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
         });
 
       if (success) {
-        alert(`Successfully placed ${outcome} prediction for ${amount} SUI on "${market.question}"`);
+        alert(`Successfully placed ${outcome} prediction for ${amount} ETH on "${market.question}"`);
         onClose();
         setAmount("");
       }
@@ -157,7 +157,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
           <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-sm font-medium">
-                  Amount (SUI) *
+                  Amount (ETH) *
                 </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -174,7 +174,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Minimum: 0.1 SUI
+                  Minimum: 0.1 ETH
                 </p>
               </div>
 
@@ -184,7 +184,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
                   <Label className="text-sm font-medium">Potential Payout</Label>
                   <div className="p-3 bg-muted/30 rounded-lg">
                     <div className="text-lg font-bold text-foreground">
-                      {potentialPayout} SUI
+                      {potentialPayout} ETH
                     </div>
                     <div className="text-xs text-muted-foreground">
                       If {outcome} wins (excluding fees)

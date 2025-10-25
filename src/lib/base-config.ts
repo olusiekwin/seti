@@ -1,6 +1,6 @@
 /**
  * Base Blockchain Configuration
- * Add Base L2 support alongside Sui
+ * Base L2 configuration for Ethereum smart contracts
  */
 
 import { base, baseSepolia } from 'viem/chains';

@@ -28,6 +28,8 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
 
   // Get wallet icon with proper fallback logic
   const getWalletIcon = (connectorName: string) => {
+    console.log('Getting icon for wallet:', connectorName)
+    
     // First try OnchainKit's built-in wallet objects
     const onchainWallet = wallets?.find(w => 
       w.name.toLowerCase().includes(connectorName.toLowerCase()) ||
@@ -35,12 +37,13 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     )
     
     if (onchainWallet?.logo) {
+      console.log('Found OnchainKit logo:', onchainWallet.logo)
       return onchainWallet.logo
     }
 
-    // Fallback to hardcoded wallet logos for major wallets
+    // Fallback to reliable wallet logos for major wallets
     const walletLogos: Record<string, string> = {
-      'metamask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
+      'metamask': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
       'coinbase': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
       'coinbase wallet': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
       'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4',
@@ -51,11 +54,29 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'trust wallet': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
       'frame': 'https://frame.sh/favicon.ico',
       'rabby': 'https://rabby.io/favicon.ico',
-      'enkrypt': 'https://enkrypt.com/favicon.ico'
+      'enkrypt': 'https://enkrypt.com/favicon.ico',
+      'injected': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg'
     }
 
     const normalizedName = connectorName.toLowerCase().trim()
-    return walletLogos[normalizedName] || null
+    console.log('Normalized name:', normalizedName)
+    
+    // Try exact match first
+    if (walletLogos[normalizedName]) {
+      console.log('Found exact match:', walletLogos[normalizedName])
+      return walletLogos[normalizedName]
+    }
+    
+    // Try partial matches for common variations
+    for (const [key, logo] of Object.entries(walletLogos)) {
+      if (normalizedName.includes(key) || key.includes(normalizedName)) {
+        console.log('Found partial match:', key, logo)
+        return logo
+      }
+    }
+    
+    console.log('No logo found for:', connectorName)
+    return null
   }
 
   return (

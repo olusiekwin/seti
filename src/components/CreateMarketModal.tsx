@@ -250,7 +250,7 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
             {/* Initial Liquidity */}
             <div className="space-y-2">
               <Label htmlFor="initial_liquidity" className="text-sm font-medium">
-                Initial Liquidity (SUI) *
+                Initial Liquidity (ETH) *
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -267,7 +267,7 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Minimum 1 SUI. This provides initial liquidity and will be split equally between YES and NO outcomes.
+                Minimum 0.01 ETH. This provides initial liquidity and will be split equally between YES and NO outcomes.
               </p>
             </div>
 

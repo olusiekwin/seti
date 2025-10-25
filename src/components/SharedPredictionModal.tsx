@@ -168,7 +168,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-sm font-medium">
-                Amount (SUI) *
+                Amount (ETH) *
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -184,7 +184,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
                   className="pl-10 bg-muted/30 border-border/50"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Minimum: 0.1 SUI</p>
+              <p className="text-xs text-muted-foreground">Minimum: 0.001 ETH</p>
             </div>
 
             {/* Potential Payout */}
@@ -192,7 +192,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Potential Payout</Label>
                 <div className="p-4 bg-muted/30 rounded-lg">
-                  <div className="text-lg font-bold text-foreground">{potentialPayout} SUI</div>
+                  <div className="text-lg font-bold text-foreground">{potentialPayout} ETH</div>
                   <div className="text-xs text-muted-foreground">If {outcome} wins (excluding fees)</div>
                 </div>
               </div>
@@ -261,9 +261,9 @@ Market ID: ${receipt.marketId}
 PREDICTION DETAILS
 ------------------
 Outcome: ${receipt.outcome}
-Amount: ${receipt.amount} SUI
+Amount: ${receipt.amount} ETH
 Price: ${receipt.price}¢
-Potential Payout: ${receipt.potentialPayout} SUI
+Potential Payout: ${receipt.potentialPayout} ETH
 
 Thank you for using seti!
     `.trim()
@@ -280,7 +280,7 @@ Thank you for using seti!
   }
 
   const handleCopyReceipt = () => {
-    const receiptText = `Receipt ID: ${receipt.id}\nMarket: ${receipt.marketQuestion}\nOutcome: ${receipt.outcome}\nAmount: ${receipt.amount} SUI\nPrice: ${receipt.price}¢\nPotential Payout: ${receipt.potentialPayout} SUI`
+    const receiptText = `Receipt ID: ${receipt.id}\nMarket: ${receipt.marketQuestion}\nOutcome: ${receipt.outcome}\nAmount: ${receipt.amount} ETH\nPrice: ${receipt.price}¢\nPotential Payout: ${receipt.potentialPayout} ETH`
     navigator.clipboard.writeText(receiptText)
   }
 
@@ -329,7 +329,7 @@ Thank you for using seti!
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Amount:</span>
-                <span className="font-bold">{receipt.amount} SUI</span>
+                <span className="font-bold">{receipt.amount} ETH</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -339,7 +339,7 @@ Thank you for using seti!
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Potential Payout:</span>
-                <span className="font-bold text-gradient-gold">{receipt.potentialPayout} SUI</span>
+                <span className="font-bold text-gradient-gold">{receipt.potentialPayout} ETH</span>
               </div>
 
               <div className="flex justify-between text-sm">

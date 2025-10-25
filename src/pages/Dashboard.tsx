@@ -211,11 +211,11 @@ export default function Dashboard() {
                                   <Clock className="w-3 h-3" />
                                   {new Date(prediction.timestamp * 1000).toLocaleDateString()}
                                 </span>
-                                <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} SUI</span>
+                                <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} ETH</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} SUI</div>
+                              <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} ETH</div>
                               <div className="text-xs text-muted-foreground">
                                 Shares: {(prediction.shares / 1000000000).toFixed(2)}
                               </div>
@@ -284,12 +284,12 @@ export default function Dashboard() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} SUI</div>
+                                <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} ETH</div>
                                 <div
                                   className={`text-xs font-semibold ${profit >= 0 ? "text-success" : "text-danger"}`}
                                 >
                                   {profit >= 0 ? "+" : ""}
-                                  {profit.toFixed(2)} SUI
+                                  {profit.toFixed(2)} ETH
                                 </div>
                               </div>
                             </div>

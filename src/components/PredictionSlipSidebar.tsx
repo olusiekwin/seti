@@ -96,7 +96,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
   }
 
   const formatAmount = (amount: number) => {
-    return (amount / 1000000000).toFixed(2) // Convert from smallest unit to SUI
+    return (amount / 1000000000).toFixed(2) // Convert from smallest unit to ETH
   }
 
   return (
@@ -215,7 +215,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Amount:</span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {formatAmount(slipData.amount)} SUI
+                    {formatAmount(slipData.amount)} ETH
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -234,7 +234,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
                   <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-3">
                     <span className="text-slate-600 dark:text-slate-400">Payout:</span>
                     <span className="font-bold text-green-600 dark:text-green-400">
-                      {formatAmount(slipData.payout)} SUI
+                      {formatAmount(slipData.payout)} ETH
                     </span>
                   </div>
                 )}
@@ -247,7 +247,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => window.open(`https://suiexplorer.com/txblock/${slipData.transactionHash}`, '_blank')}
+              onClick={() => window.open(`https://sepolia.basescan.org/tx/${slipData.transactionHash}`, '_blank')}
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               View on Explorer

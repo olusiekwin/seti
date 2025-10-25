@@ -8,7 +8,7 @@ export interface CreateMarketParams {
   category: string;
   imageUrl: string;
   tags: string[];
-  initialLiquiditySui: number;
+  initialLiquidityEth: number;
 }
 
 export interface UseCreateMarketResult {
