@@ -6,11 +6,13 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { X, DollarSign, AlertCircle, CheckCircle, Download, Copy } from "lucide-react"
+import { X, DollarSign, AlertCircle, CheckCircle, Download, Copy, Target } from "lucide-react"
 import { type Market, calculatePrices, formatTimeRemaining } from "@/types/contract"
 import { usePrediction, savePredictions, getPredictions } from "@/hooks/usePrediction"
 import type { PredictionReceipt } from "@/hooks/usePredictionModal"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
+import { useContract } from "@/hooks/useContract"
+import { PredictionTracker } from "./PredictionTracker"
 
 interface SharedPredictionModalProps {
   isOpen: boolean
@@ -23,13 +25,25 @@ interface SharedPredictionModalProps {
 export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShowReceipt }: SharedPredictionModalProps) {
   const { isConnected } = useWalletConnection()
   const { placePrediction, isLoading, error } = usePrediction()
+  const { placeBet, isLoading: contractLoading, error: contractError } = useContract()
+  
+  const isSubmitting = isLoading || contractLoading
+  const submitError = error || contractError
   const [amount, setAmount] = useState("")
   const [localError, setLocalError] = useState<string | null>(null)
+  const [showTracker, setShowTracker] = useState(false)
+  const [currentPrediction, setCurrentPrediction] = useState<any>(null)
 
+  // Reduced logging for production
+  if (process.env.NODE_ENV === 'development' && isOpen) {
   console.log("SharedPredictionModal render:", { isOpen, market: market?.question, outcome })
+  }
 
   if (!isOpen || !market || !outcome) {
+    // Only log in development when modal should be open
+    if (process.env.NODE_ENV === 'development' && isOpen) {
     console.log("SharedPredictionModal: Not rendering because:", { isOpen, hasMarket: !!market, outcome })
+    }
     return null
   }
 
@@ -49,38 +63,73 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
     setLocalError(null)
 
     try {
-      const success = await placePrediction({
-        marketId: market.id,
-        outcome: outcome,
-        amount: Number.parseFloat(amount),
-      })
+      // Use smart contract to place bet
+      const result = await placeBet(
+        parseInt(market.id),
+        outcome === "YES" ? 1 : 0,
+        amount
+      )
 
-      if (success) {
-        const predictions = getPredictions()
-        const latestPrediction = predictions[predictions.length - 1]
-
-        // Update with market details
-        latestPrediction.marketQuestion = market.question
-        latestPrediction.marketCategory = market.category
-        latestPrediction.price = outcomePrice
-        latestPrediction.potentialPayout = Number.parseFloat(potentialPayout)
-
-        savePredictions(predictions)
-
-        // Generate receipt
-        const receipt: PredictionReceipt = {
-          id: latestPrediction.id,
+      if (result) {
+        // Show "Transaction submitted" message first
+        setLocalError(null)
+        
+        // Wait for transaction confirmation using the hook
+        const success = await placePrediction({
           marketId: market.id,
-          marketQuestion: market.question,
           outcome: outcome,
           amount: Number.parseFloat(amount),
-          price: outcomePrice,
-          potentialPayout: Number.parseFloat(potentialPayout),
-          timestamp: new Date(),
-          status: "confirmed",
-        }
+        })
 
-        onShowReceipt(receipt)
+        // Only show success message after confirmation
+        if (success) {
+          const predictions = getPredictions()
+          const latestPrediction = predictions[predictions.length - 1]
+
+          // Update with market details
+          latestPrediction.marketQuestion = market.question
+          latestPrediction.marketCategory = market.category
+          latestPrediction.price = outcomePrice
+
+          savePredictions(predictions)
+
+          // Generate receipt
+          const receipt: PredictionReceipt = {
+            id: latestPrediction.id,
+            marketId: market.id,
+            marketQuestion: market.question,
+            outcome: outcome,
+            amount: Number.parseFloat(amount),
+            price: outcomePrice,
+            potentialPayout: Number.parseFloat(potentialPayout),
+            timestamp: new Date(),
+            status: "confirmed",
+          }
+
+          // Create prediction object for tracker
+          const predictionForTracker = {
+            id: latestPrediction.id,
+            marketId: market.id,
+            marketQuestion: market.question,
+            outcome: outcome,
+            amount: Number.parseFloat(amount),
+            price: outcomePrice,
+            potentialPayout: Number.parseFloat(potentialPayout),
+            timestamp: new Date(),
+            status: 'in_progress' as const,
+            currentPrice: outcomePrice,
+            progress: 0
+          }
+
+          setCurrentPrediction(predictionForTracker)
+          setShowTracker(true)
+          
+          onShowReceipt(receipt)
+        } else {
+          setLocalError("Transaction failed. Please try again.")
+        }
+      } else {
+        setLocalError("Failed to submit transaction. Please try again.")
       }
     } catch (err) {
       setLocalError("Failed to place prediction. Please try again.")
@@ -98,20 +147,29 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
   const potentialPayout = amount ? ((Number.parseFloat(amount) * 100) / outcomePrice).toFixed(4) : "0"
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 min-h-screen">
-      <div className="bg-background rounded-lg shadow-xl w-full max-w-2xl mx-auto my-auto max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 z-[100] flex">
+      {/* Backdrop */}
+      <div 
+        className="flex-1 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+      
+      {/* Left Sidebar */}
+      <div className="w-[500px] bg-background border-r shadow-xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
             <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">Place Prediction</h2>
             <Button variant="ghost" size="sm" onClick={handleClose}>
               <X className="w-5 h-5" />
             </Button>
           </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Market Info */}
           <div className="mb-6">
             <div className="mb-3">
-              <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-sm font-medium rounded-full border border-primary/30">
+              <span className="inline-block px-3 py-1 bg-primary/20 text-primary text-sm font-medium border border-primary/30">
                 {market.category}
               </span>
             </div>
@@ -123,17 +181,17 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
             <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{market.description}</p>
           </div>
 
-          {(error || localError) && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+          {(submitError || localError) && (
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-destructive" />
-                <p className="text-destructive text-sm">{error || localError}</p>
+                <p className="text-destructive text-sm">{submitError || localError}</p>
               </div>
             </div>
           )}
 
           {/* Market Stats */}
-          <div className="grid grid-cols-3 gap-6 mb-6 p-6 bg-muted/20 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-muted/20">
             <div className="text-center">
               <div className="text-lg font-bold text-gradient-gold">
                 {yesPrice}¢ / {noPrice}¢
@@ -155,7 +213,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
           </div>
 
           {/* Selected Outcome Display */}
-          <div className="mb-6 p-6 bg-muted/20 rounded-lg">
+          <div className="mb-6 p-4 bg-muted/20">
             <div className="text-center">
               <div className="text-xl font-bold text-gradient-gold mb-1">
                 {outcome} - {outcomePrice}¢
@@ -168,7 +226,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-sm font-medium">
-                Amount (ETH) *
+                Amount (USDC) *
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -184,15 +242,15 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
                   className="pl-10 bg-muted/30 border-border/50"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">Minimum: 0.001 ETH</p>
+              <p className="text-xs text-muted-foreground">Minimum: 1 USDC</p>
             </div>
 
             {/* Potential Payout */}
             {amount && Number.parseFloat(amount) > 0 && (
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Potential Payout</Label>
-                <div className="p-4 bg-muted/30 rounded-lg">
-                  <div className="text-lg font-bold text-foreground">{potentialPayout} ETH</div>
+                <div className="p-4 bg-muted/30">
+                  <div className="text-lg font-bold text-foreground">{potentialPayout} USDC</div>
                   <div className="text-xs text-muted-foreground">If {outcome} wins (excluding fees)</div>
                 </div>
               </div>
@@ -213,15 +271,15 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
                 className={`flex-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 ${
                   outcome === "YES" ? "btn-market-success" : "btn-market-danger"
                 }`}
-                disabled={isLoading || !isConnected || !amount || Number.parseFloat(amount) <= 0}
+                disabled={isSubmitting || !isConnected || !amount || Number.parseFloat(amount) <= 0}
               >
-                {isLoading ? "Placing..." : `Place ${outcome} Prediction`}
+                {isSubmitting ? "Placing..." : `Place ${outcome} Prediction`}
               </Button>
             </div>
           </form>
 
           {/* Disclaimer */}
-          <div className="mt-6 p-3 bg-muted/10 rounded-lg">
+          <div className="mt-6 p-3 bg-muted/10">
             <p className="text-xs text-muted-foreground text-center">
               Predictions are final once placed. Please review all details before confirming.
             </p>
@@ -261,9 +319,9 @@ Market ID: ${receipt.marketId}
 PREDICTION DETAILS
 ------------------
 Outcome: ${receipt.outcome}
-Amount: ${receipt.amount} ETH
+Amount: ${receipt.amount} USDC
 Price: ${receipt.price}¢
-Potential Payout: ${receipt.potentialPayout} ETH
+Potential Payout: ${receipt.potentialPayout} USDC
 
 Thank you for using seti!
     `.trim()
@@ -280,24 +338,33 @@ Thank you for using seti!
   }
 
   const handleCopyReceipt = () => {
-    const receiptText = `Receipt ID: ${receipt.id}\nMarket: ${receipt.marketQuestion}\nOutcome: ${receipt.outcome}\nAmount: ${receipt.amount} ETH\nPrice: ${receipt.price}¢\nPotential Payout: ${receipt.potentialPayout} ETH`
+    const receiptText = `Receipt ID: ${receipt.id}\nMarket: ${receipt.marketQuestion}\nOutcome: ${receipt.outcome}\nAmount: ${receipt.amount} USDC\nPrice: ${receipt.price}¢\nPotential Payout: ${receipt.potentialPayout} USDC`
     navigator.clipboard.writeText(receiptText)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 min-h-screen">
-      <div className="bg-background rounded-lg shadow-xl w-full max-w-lg mx-auto my-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 z-[100] flex">
+      {/* Backdrop */}
+      <div 
+        className="flex-1 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Left Sidebar */}
+      <div className="w-[500px] bg-background border-r shadow-xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
             <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">Prediction Receipt</h2>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
           </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
           {/* Success Icon */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-success/20 flex items-center justify-center">
               <CheckCircle className="w-8 h-8 text-success" />
             </div>
           </div>
@@ -309,7 +376,7 @@ Thank you for using seti!
               <p className="text-sm text-muted-foreground">Your {receipt.outcome} prediction has been confirmed</p>
             </div>
 
-            <div className="bg-muted/20 rounded-lg p-6 space-y-4">
+            <div className="bg-muted/20 p-6 space-y-4">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Receipt ID:</span>
                 <span className="font-mono text-xs">{receipt.id}</span>
@@ -329,7 +396,7 @@ Thank you for using seti!
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Amount:</span>
-                <span className="font-bold">{receipt.amount} ETH</span>
+                <span className="font-bold">{receipt.amount} USDC</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -339,7 +406,7 @@ Thank you for using seti!
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Potential Payout:</span>
-                <span className="font-bold text-gradient-gold">{receipt.potentialPayout} ETH</span>
+                <span className="font-bold text-gradient-gold">{receipt.potentialPayout} USDC</span>
               </div>
 
               <div className="flex justify-between text-sm">
@@ -372,6 +439,18 @@ Thank you for using seti!
           </div>
         </div>
       </div>
+
+      {/* Prediction Tracker */}
+      {showTracker && currentPrediction && (
+        <div className="fixed inset-0 z-[101] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="w-full max-w-md mx-4">
+            <PredictionTracker
+              prediction={currentPrediction}
+              onClose={() => setShowTracker(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

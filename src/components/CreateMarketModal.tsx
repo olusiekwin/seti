@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,16 +7,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { X, Plus, Calendar, DollarSign } from "lucide-react";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { useContract } from "@/hooks/useContract";
+import { useDrafts } from "@/hooks/useDrafts";
 
 interface CreateMarketModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (marketId: string) => void;
+  draftId?: string | null;
 }
 
-export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketModalProps) {
-  const { isConnected } = useWalletConnection();
+export function CreateMarketModal({ isOpen, onClose, onSuccess, draftId }: CreateMarketModalProps) {
+  const { isConnected, address } = useWalletConnection();
+  const { createMarket, isLoading: contractLoading, error: contractError } = useContract();
+  const { createDraft, updateDraft, getDraft, deleteDraft } = useDrafts();
   const [isLoading, setIsLoading] = useState(false);
+  const [isDraftMode, setIsDraftMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
@@ -30,7 +36,107 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
   });
   const [newTag, setNewTag] = useState("");
 
+  // Load draft data when draftId is provided
+  React.useEffect(() => {
+    if (draftId) {
+      const draft = getDraft(draftId);
+      if (draft) {
+        setFormData({
+          question: draft.question,
+          description: draft.description,
+          end_time: draft.endTime,
+          category: draft.category,
+          image_url: draft.imageUrl,
+          tags: draft.tags,
+          initial_liquidity: draft.initialLiquidity
+        });
+        setIsDraftMode(true);
+      }
+    } else {
+      // Reset form when no draft
+      setFormData({
+        question: "",
+        description: "",
+        end_time: "",
+        category: "",
+        image_url: "",
+        tags: [],
+        initial_liquidity: ""
+      });
+      setIsDraftMode(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftId]);
+
+  // Admin addresses - only these can create markets
+  const ADMIN_ADDRESSES = [
+    "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb", // Replace with actual admin address
+  ];
+
+  const isAdmin = address && ADMIN_ADDRESSES.some(admin => 
+    admin.toLowerCase() === address.toLowerCase()
+  );
+
   if (!isOpen) return null;
+
+  if (!isAdmin) {
+    return (
+      <div className="fixed inset-0 z-[100] flex">
+        <div 
+          className="flex-1 bg-black/50 backdrop-blur-sm"
+          onClick={onClose}
+        />
+        
+        <div className="w-[450px] bg-background border-r shadow-xl overflow-hidden flex flex-col">
+          <div className="flex items-center justify-between p-6 border-b">
+            <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">
+              Access Denied
+            </h2>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+          
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <h3 className="text-xl font-bold text-foreground mb-4">Admin Only</h3>
+              <p className="text-muted-foreground mb-6">
+                Only administrators can create prediction markets.
+              </p>
+              <Button onClick={onClose} variant="outline">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSaveDraft = () => {
+    if (!formData.question.trim()) {
+      alert("Please enter a question to save as draft");
+      return;
+    }
+
+    const draftData = {
+      question: formData.question,
+      description: formData.description,
+      category: formData.category,
+      endTime: formData.end_time,
+      imageUrl: formData.image_url,
+      tags: formData.tags,
+      initialLiquidity: formData.initial_liquidity
+    };
+
+    if (draftId) {
+      updateDraft(draftId, draftData);
+    } else {
+      createDraft(draftData);
+    }
+    
+    alert("Draft saved successfully!");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,17 +147,37 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
     }
 
     try {
-      // Simulate market creation - replace with actual implementation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsLoading(true);
+      setError(null);
       
-      const marketId = `market-${Date.now()}`;
-      console.log("Market created:", marketId);
-
-      if (marketId) {
-        onSuccess?.(marketId);
-        onClose();
+      // Validate form data
+      if (!formData.question.trim()) {
+        throw new Error("Question is required");
+      }
+      
+      if (!formData.end_time) {
+        throw new Error("End time is required");
+      }
+      
+      const endTime = new Date(formData.end_time).getTime() / 1000;
+      if (endTime <= Date.now() / 1000) {
+        throw new Error("End time must be in the future");
+      }
+      
+      // Create market on smart contract
+      const result = await createMarket(
+        formData.question,
+        formData.description || formData.question,
+        endTime
+      );
+      
+      if (result) {
+        // Call success callback with market ID
+        if (onSuccess) {
+          onSuccess(result);
+        }
         
-        // Reset form
+        // Reset form and close modal
         setFormData({
           question: "",
           description: "",
@@ -61,9 +187,13 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
           tags: [],
           initial_liquidity: ""
         });
+        onClose();
       }
+      
     } catch (err) {
-      console.error("Failed to create market:", err);
+      setError(err instanceof Error ? err.message : "Failed to create market");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,20 +215,29 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 min-h-screen">
-      <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto mx-auto my-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">
-              Create New Market
-            </h2>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+    <div className="fixed inset-0 z-[100] flex">
+      {/* Backdrop */}
+      <div 
+        className="flex-1 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Left Sidebar */}
+      <div className="w-[550px] bg-background border-r shadow-xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-2xl font-bold text-gradient-gold font-orbitron">
+            Create New Market
+          </h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
 
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
           {error && (
-            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20">
               <p className="text-destructive text-sm">{error}</p>
             </div>
           )}
@@ -250,7 +389,7 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
             {/* Initial Liquidity */}
             <div className="space-y-2">
               <Label htmlFor="initial_liquidity" className="text-sm font-medium">
-                Initial Liquidity (ETH) *
+                Initial Liquidity (USDC) *
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -267,12 +406,12 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Minimum 0.01 ETH. This provides initial liquidity and will be split equally between YES and NO outcomes.
+                Minimum 10 USDC. This provides initial liquidity and will be split equally between YES and NO outcomes.
               </p>
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex gap-3 pt-4">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -282,11 +421,19 @@ export function CreateMarketModal({ isOpen, onClose, onSuccess }: CreateMarketMo
                 Cancel
               </Button>
               <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleSaveDraft}
+                className="flex-1 transition-all duration-200 hover:scale-105"
+              >
+                {draftId ? "Update Draft" : "Save Draft"}
+              </Button>
+              <Button 
                 type="submit" 
                 className="btn-market-gold flex-1 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                disabled={isLoading || !isConnected}
+                disabled={isLoading || contractLoading || !isConnected}
               >
-                {isLoading ? "Creating..." : "Create Market"}
+                {(isLoading || contractLoading) ? "Creating..." : "Create Market"}
               </Button>
             </div>
           </form>

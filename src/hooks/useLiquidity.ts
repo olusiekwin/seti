@@ -21,7 +21,7 @@ export function useLiquidity(): UseLiquidityResult {
 
     try {
       // Simulate adding liquidity
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Remove artificial delay - use real API call
       
       console.log('Liquidity added:', params);
       return true;

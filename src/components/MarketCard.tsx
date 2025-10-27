@@ -4,43 +4,82 @@ import { Button } from "@/components/ui/button"
 import { MarketBadge } from "./MarketBadge"
 import { TrendingUp, TrendingDown, Users, Clock, ImageIcon, BarChart3, Gift, Bookmark, BookmarkCheck } from "lucide-react"
 import { type Market, calculatePrices, formatTimeRemaining, formatVolume } from "@/types/contract"
-import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
+import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
 import { useCountdown } from "@/hooks/useCountdown"
-import { useFavorites } from "@/hooks/useFavorites"
+import { useFavoritesBackend } from "@/hooks/useFavoritesBackend"
+import { useConfirmation } from "@/contexts/ConfirmationContext"
+import { useState } from "react"
 
 interface MarketCardProps {
   market: Market
   trending?: "up" | "down"
 }
 
+
 export function MarketCard({ market, trending }: MarketCardProps) {
   const { yesPrice, noPrice } = calculatePrices(market.outcome_a_shares || 0, market.outcome_b_shares || 0)
   const { timeLeft, isEnded, isUrgent } = useCountdown(market.end_time)
   const volume = formatVolume(market.volume_24h)
+  const [isAnimating, setIsAnimating] = useState(false)
 
-  // Convert ETH to USD (assuming 1 ETH = $2000 for demo)
-  const ETH_TO_USD = 2000
-  const liquidityUSD = ((market.total_liquidity || 0) / 1_000_000_000) * ETH_TO_USD
+  // Calculate liquidity in USDC (divide by 1,000,000 for 6 decimals)
+  const liquidityUSDC = (market.total_liquidity || 0) / 1_000_000
 
-  const { openModal } = usePredictionModalContext()
-  const { isFavorite, toggleFavorite } = useFavorites()
+  // Check if it's a sports market
+  const isSportsMarket = market.category?.toLowerCase().includes('sport') || 
+                        market.question?.toLowerCase().includes('football') ||
+                        market.question?.toLowerCase().includes('soccer') ||
+                        market.question?.toLowerCase().includes('basketball') ||
+                        market.question?.toLowerCase().includes('baseball') ||
+                        market.question?.toLowerCase().includes('hockey') ||
+                        market.question?.toLowerCase().includes('tennis') ||
+                        market.question?.toLowerCase().includes('cricket') ||
+                        market.question?.toLowerCase().includes('rugby') ||
+                        market.question?.toLowerCase().includes('match') ||
+                        market.question?.toLowerCase().includes('game') ||
+                        market.question?.toLowerCase().includes('vs') ||
+                        market.question?.toLowerCase().includes('v ')
+
+  // Get sidebar context
+  const { openSidebar } = useMarketSidebar()
+  const { isFavorite, toggleFavorite } = useFavoritesBackend()
+  const { showConfirmation } = useConfirmation()
 
   const handlePredictionClick = (outcome: "YES" | "NO") => {
-    console.log("[v0] MarketCard: Prediction clicked:", outcome, market.question)
-    openModal(market, outcome)
+    console.log("[MarketCard] Opening sidebar for market:", market.question)
+    openSidebar(market)
   }
 
   const handleFavoriteClick = () => {
     console.log("[v0] MarketCard: Favorite clicked:", market.id)
-    toggleFavorite(market.id)
+    
+    // Start animation
+    setIsAnimating(true)
+    
+    setTimeout(() => {
+      setIsAnimating(false)
+      toggleFavorite(market.id)
+      
+      showConfirmation({
+        type: 'success',
+        title: isFavorite(market.id) ? 'Removed from Favorites' : 'Added to Favorites',
+        message: isFavorite(market.id) 
+          ? 'This market has been removed from your favorites.'
+          : 'This market has been added to your favorites.',
+        autoClose: true,
+        autoCloseDelay: 1500
+      })
+    }, 300)
   }
 
   return (
-    <div className="market-card group p-5 w-full max-w-sm mx-auto bg-gradient-to-br from-slate-900/95 to-slate-800/95 border border-slate-700/60 rounded-2xl transition-all duration-300 hover:border-blue-500/60 hover:shadow-2xl hover:shadow-blue-500/20 backdrop-blur-sm hover:scale-[1.02]">
+    <div className={`market-card group p-3 sm:p-4 w-full max-w-sm mx-auto bg-background/30 dark:bg-black/20 backdrop-blur-sm border border-border/40 dark:border-white/20 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/30 hover:bg-background/40 dark:hover:bg-black/30 ${
+      isAnimating ? 'animate-prediction-pulse' : ''
+    }`}>
       {/* Market Header */}
-      <div className="flex items-start gap-4 mb-5">
+      <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
         {/* Market Icon */}
-        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 shadow-lg">
+        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted/20">
           {market.image_url ? (
             <img
               src={market.image_url}
@@ -48,89 +87,89 @@ export function MarketCard({ market, trending }: MarketCardProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-white" />
+            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 rounded-lg flex items-center justify-center">
+              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
           )}
         </div>
 
         {/* Market Question */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-bold text-white group-hover:text-blue-100 transition-all duration-300 leading-tight line-clamp-2 mb-3">
+          <h3 className="text-sm sm:text-base font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 leading-tight line-clamp-2 mb-1 sm:mb-2">
             {market.question}
           </h3>
           
           {/* Market Status */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {market.resolved ? (
-              <div className="inline-flex items-center gap-1 bg-green-500/20 text-green-400 text-xs px-3 py-1.5 rounded-full border border-green-500/30">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+              <div className="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-md border border-green-200">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 RESOLVED
               </div>
             ) : (
-              <div className={`flex items-center gap-2 text-sm ${isUrgent ? 'text-red-300' : 'text-slate-300'}`}>
-                <Clock className={`w-4 h-4 ${isUrgent ? 'text-red-300' : 'text-slate-400'}`} />
+              <div className={`flex items-center gap-2 text-sm ${isUrgent ? 'text-destructive' : 'text-muted-foreground'}`}>
+                <Clock className={`w-4 h-4 ${isUrgent ? 'text-destructive' : 'text-muted-foreground'}`} />
                 <span className={isUrgent ? 'font-semibold' : ''}>
                   {isUrgent ? 'Ends soon' : 'Ends'} {timeLeft}
                 </span>
+              </div>
+            )}
+            
+            {/* LIVE tag for sports markets */}
+            {isSportsMarket && !market.resolved && (
+              <div className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md border border-red-200">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                LIVE
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Enhanced Action Buttons */}
-      <div className="flex gap-3 mb-6">
+      {/* Prediction Buttons */}
+      <div className="flex gap-2 mb-3">
         <Button
-          className="flex-1 h-12 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-green-500/25 hover:scale-[1.02]"
+          className="flex-1 h-8 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs btn-prediction"
           disabled={market.resolved}
           onClick={() => handlePredictionClick("YES")}
         >
-          <span className="text-base">Yes</span>
-          <span className="text-sm font-bold bg-white/20 px-2 py-1 rounded-lg">{yesPrice}%</span>
+          <span className="text-sm">Yes</span>
+          <span className="text-xs font-bold bg-background/20 px-1.5 py-0.5 rounded">{yesPrice}%</span>
         </Button>
         <Button
-          className="flex-1 h-12 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-red-500/25 hover:scale-[1.02]"
+          className="flex-1 h-8 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs btn-prediction"
           disabled={market.resolved}
           onClick={() => handlePredictionClick("NO")}
         >
-          <span className="text-base">No</span>
-          <span className="text-sm font-bold bg-white/20 px-2 py-1 rounded-lg">{noPrice}%</span>
+          <span className="text-sm">No</span>
+          <span className="text-xs font-bold bg-background/20 px-1.5 py-0.5 rounded">{noPrice}%</span>
         </Button>
       </div>
 
-      {/* Enhanced Bottom Section */}
-      <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
+      {/* Bottom Section */}
+      <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-border/50">
         {/* Volume */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Vol.</span>
-          <span className="text-sm font-bold text-white">${volume}</span>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <span className="text-xs sm:text-sm text-muted-foreground">Vol.</span>
+          <span className="text-xs sm:text-sm font-bold text-card-foreground">${volume}</span>
         </div>
 
-        {/* Enhanced Action Icons */}
-        <div className="flex items-center gap-3">
+        {/* Bookmark Icon */}
           <button 
-            className="p-2 hover:bg-blue-500/20 rounded-lg transition-all duration-200 hover:scale-110 group"
-            title="Share market"
-          >
-            <Gift className="w-5 h-5 text-slate-400 group-hover:text-blue-400 transition-colors" />
-          </button>
-          <button 
-            className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 group ${
+          className={`p-1.5 sm:p-2 rounded-md transition-colors duration-200 hover:scale-105 group ${
               isFavorite(market.id) 
-                ? 'bg-yellow-500/20 hover:bg-yellow-500/30' 
-                : 'hover:bg-yellow-500/20'
-            }`}
+              ? 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/30' 
+              : 'hover:bg-muted/50'
+          } ${isAnimating ? 'animate-favorite-heart' : ''}`}
             onClick={handleFavoriteClick}
             title={isFavorite(market.id) ? 'Remove from favorites' : 'Add to favorites'}
           >
             {isFavorite(market.id) ? (
-              <BookmarkCheck className="w-5 h-5 text-yellow-400 group-hover:text-yellow-300 transition-colors" />
+            <BookmarkCheck className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 group-hover:text-yellow-700 dark:text-yellow-400 dark:group-hover:text-yellow-300 transition-colors" />
             ) : (
-              <Bookmark className="w-5 h-5 text-slate-400 group-hover:text-yellow-400 transition-colors" />
+            <Bookmark className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-yellow-500 transition-colors" />
             )}
           </button>
-        </div>
       </div>
     </div>
   )

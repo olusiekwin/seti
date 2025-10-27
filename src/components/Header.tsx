@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Search, Plus, User, BarChart3, Activity, ChevronDown, Bell } from "lucide-react"
+import { Search, Plus, User, BarChart3, Activity, ChevronDown, Bell, Menu, X, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import { CreateMarketModal } from "./CreateMarketModal"
@@ -14,47 +14,78 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "./ThemeToggle"
 import { useWalletConnection } from '@/hooks/useWalletConnection'
-import { useDisconnect, useBalance } from 'wagmi'
+import { useDisconnect } from 'wagmi'
 import { WalletModal } from "./WalletModal"
 import { NotificationDropdown } from './NotificationDropdown'
+import { WalletStatusIndicator } from './WalletStatusIndicator'
 
-import { useScroll } from '@/hooks/use-scroll'
 
 export function Header() {
   const location = useLocation()
-  const { scrollDirection } = useScroll()
   const [isCreateMarketOpen, setIsCreateMarketOpen] = useState(false)
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
-  const { isConnected, address } = useWalletConnection()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { 
+    isConnected, 
+    address, 
+    displayBalance,
+    formattedUsdcBalance,
+    usdcSymbol,
+    formattedEthBalance,
+    ethSymbol,
+    isLoadingBalance,
+    balanceError,
+    walletError
+  } = useWalletConnection()
   const { disconnect } = useDisconnect()
-  const { data: balance } = useBalance({
-    address: address,
-  })
+  
+  // Handle balance display with error states
+  const getBalanceDisplay = () => {
+    if (balanceError) {
+      return 'Error loading balance'
+    }
+    if (isLoadingBalance) {
+      return 'Loading...'
+    }
+    if (displayBalance) {
+      return `${displayBalance.value} ${displayBalance.symbol}`
+    }
+    return '0.00 USDC'
+  }
+
+  // Admin addresses - only these can create markets
+  const ADMIN_ADDRESSES = [
+    "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb", // Replace with actual admin address
+  ];
+
+  const isAdmin = address && ADMIN_ADDRESSES.some(admin => 
+    admin.toLowerCase() === address.toLowerCase()
+  );
 
   return (
     <div className="flex flex-col">
       <header
-        className={`sticky top-0 z-50 w-full border-b border-border/20 bg-background/80 backdrop-blur flex justify-center transform transition-transform duration-300 ${
-          scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'
-          }`}
+        className="fixed top-0 z-50 w-full border-b border-border/20 bg-background/80 backdrop-blur flex justify-center overflow-visible"
       >
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between max-w-7xl w-full">
-          {/* Logo */}
-          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity gap-2">
-            <img src="./seti_.svg" alt="Seti logo" className="h-8 w-8" />
-            <span
-              className="text-2xl font-bold text-snow"
-              style={{
-                fontFamily: "'Fortune Variable'",
-                textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-              }}
-            >
-              Seti
-            </span>
-          </Link>
+        <div className="container mx-auto px-2 sm:px-4 h-14 flex items-center justify-between max-w-7xl w-full overflow-visible relative header-mobile md:header-tablet lg:header-desktop">
+          {/* Left Section - Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center hover:opacity-80 transition-opacity gap-2 logo">
+              <img src="./seti_.svg" alt="Seti logo" className="h-6 w-6 sm:h-8 sm:w-8" />
+              <span
+                className="text-lg sm:text-2xl font-bold text-snow"
+                style={{
+                  fontFamily: "'Fortune Variable'",
+                  textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                }}
+              >
+                Seti
+              </span>
+            </Link>
+          </div>
 
-          {/* Search */}
-          <div className="hidden md:flex items-center gap-4 flex-1 max-w-md mx-4 lg:mx-8">
+          {/* Center Section - Search (Desktop Only) */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-1 max-w-md mx-4 lg:mx-8">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -71,12 +102,29 @@ export function Header() {
             </div>
           </div>
 
-          {/* Wallet Connection */}
-          <div className="flex items-center gap-2 lg:gap-3">
+          {/* Right Section - Actions */}
+          <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 mobile-actions md:actions">
+            {/* Mobile Theme Toggle */}
+            <div className="md:hidden">
+              <ThemeToggle />
+            </div>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden p-2 mobile-menu-button"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+
+            {/* Desktop Actions */}
+            <div className="hidden md:flex items-center gap-2 lg:gap-3">
             {/* Theme Toggle */}
             <ThemeToggle />
             
-            {isConnected && (
+            {isConnected && isAdmin && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -84,13 +132,20 @@ export function Header() {
                 onClick={() => setIsCreateMarketOpen(true)}
               >
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Create Market</span>
-                <span className="sm:hidden">Create</span>
+                <span className="hidden lg:inline">Create Market</span>
+                <span className="lg:hidden">Create</span>
               </Button>
             )}
 
-            {/* Notifications Dropdown */}
-            <NotificationDropdown />
+            {/* Notifications Dropdown - Only show when logged in */}
+            {isConnected && <NotificationDropdown />}
+
+            {/* Wallet Error Display */}
+            {walletError && (
+              <div className="text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/20 px-3 py-2 rounded-lg border border-amber-200 dark:border-amber-800">
+                {walletError}
+              </div>
+            )}
 
             {/* Wallet Connection */}
             {!isConnected ? (
@@ -105,7 +160,7 @@ export function Header() {
                 {/* Balance Display */}
                 <div className="flex flex-col items-end">
                   <div className="text-sm font-medium text-foreground">
-                    {balance ? `${parseFloat(balance.formatted).toFixed(4)} ${balance.symbol}` : 'Loading...'}
+                    {getBalanceDisplay()}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {address?.slice(0, 6)}...{address?.slice(-4)}
@@ -156,6 +211,15 @@ export function Header() {
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link 
+                      to="/drafts" 
+                      className={`flex items-center gap-2 w-full ${location.pathname === '/drafts' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Drafts
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link 
                       to="/profile" 
                       className={`flex items-center gap-2 w-full ${location.pathname === '/profile' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
                     >
@@ -166,9 +230,116 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
+            </div>
           </div>
         </div>
       </header>
+
+      {/* Mobile Menu */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-background/95 backdrop-blur border-b border-border/20">
+          <div className="container mx-auto px-2 sm:px-4 py-4 space-y-4">
+            {/* Mobile Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search Seti..."
+                className="pl-10 bg-muted/30 border-border/50 focus:border-primary/50 focus:bg-muted/50 rounded-xl"
+                onChange={(e) => {
+                  const searchEvent = new CustomEvent('marketSearch', {
+                    detail: { query: e.target.value.toLowerCase() }
+                  });
+                  window.dispatchEvent(searchEvent);
+                }}
+              />
+            </div>
+
+            {/* Mobile Navigation */}
+            <div className="flex flex-col space-y-1">
+              <Link
+                to="/"
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  location.pathname === "/" 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Dashboard
+              </Link>
+              
+              <Link
+                to="/activity"
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  location.pathname === "/activity" 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <Activity className="w-4 h-4" />
+                Activity
+              </Link>
+
+              {isConnected && (
+                <Link
+                  to="/profile"
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname === "/profile" 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <User className="w-4 h-4" />
+                  Profile
+                </Link>
+              )}
+            </div>
+
+            {/* Mobile Wallet Actions */}
+            <div className="pt-4 border-t border-border/20">
+              {!isConnected ? (
+                <Button
+                  onClick={() => {
+                    setIsWalletModalOpen(true)
+                    setIsMobileMenuOpen(false)
+                  }}
+                  className="w-full bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background rounded-xl"
+                >
+                  Connect Wallet
+                </Button>
+              )               : (
+                <div className="space-y-2">
+                  {isAdmin && (
+                    <Button
+                      onClick={() => {
+                        setIsCreateMarketOpen(true)
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className="w-full bg-transparent hover:bg-[hsl(208,65%,75%)] hover:text-background border-[hsl(208,65%,75%)] rounded-xl"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Market
+                    </Button>
+                  )}
+                  
+                  <div className="text-sm text-muted-foreground text-center">
+                    {address && `${address.slice(0, 6)}...${address.slice(-4)}`}
+                    <div className="text-xs mt-1">
+                      {getBalanceDisplay()}
+                    </div>
+                    <div className="mt-2">
+                      <WalletStatusIndicator />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <CreateMarketModal
         isOpen={isCreateMarketOpen}

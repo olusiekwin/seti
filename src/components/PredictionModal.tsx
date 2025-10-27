@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
 import { Market, calculatePrices, formatTimeRemaining } from "@/types/contract";
-// Removed Sui import - using wagmi instead
 import { usePrediction } from "@/hooks/usePrediction";
+import { useWalletConnection } from "@/hooks/useWalletConnection";
 
 interface PredictionModalProps {
   isOpen: boolean;
@@ -15,7 +15,7 @@ interface PredictionModalProps {
 }
 
 export function PredictionModal({ isOpen, onClose, market, outcome }: PredictionModalProps) {
-  const { isConnected } = useCurrentWallet();
+  const { isConnected } = useWalletConnection();
   const { placePrediction, isLoading, error } = usePrediction();
   const [amount, setAmount] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
         });
 
       if (success) {
-        alert(`Successfully placed ${outcome} prediction for ${amount} ETH on "${market.question}"`);
+        alert(`Successfully placed ${outcome} prediction for ${amount} USDC on "${market.question}"`);
         onClose();
         setAmount("");
       }
@@ -74,7 +74,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
   const potentialPayout = amount ? (parseFloat(amount) * 100 / outcomePrice).toFixed(4) : "0";
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 min-h-screen">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-2 sm:p-4 min-h-screen">
       <div className="bg-background rounded-lg shadow-xl max-w-4xl w-full mx-auto my-auto max-h-[90vh] overflow-y-auto">
         <div className="p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
@@ -128,9 +128,9 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
             
             <div className="flex items-center gap-2">
               <div className="text-lg md:text-xl lg:text-2xl font-bold text-gradient-neon">
-                ${(market.volume_24h / 1_000_000_000).toFixed(2)}
+                ${(market.volume_24h / 1_000_000).toFixed(2)}
               </div>
-              <div className="text-xs md:text-sm text-muted-foreground">24h Volume</div>
+              <div className="text-xs md:text-sm text-muted-foreground">24h Volume (USDC)</div>
             </div>
             
             <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
           <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="amount" className="text-sm font-medium">
-                  Amount (ETH) *
+                  Amount (USDC) *
                 </Label>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
@@ -174,7 +174,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Minimum: 0.1 ETH
+                  Minimum: 0.1 USDC
                 </p>
               </div>
 
@@ -184,7 +184,7 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
                   <Label className="text-sm font-medium">Potential Payout</Label>
                   <div className="p-3 bg-muted/30 rounded-lg">
                     <div className="text-lg font-bold text-foreground">
-                      {potentialPayout} ETH
+                      {potentialPayout} USDC
                     </div>
                     <div className="text-xs text-muted-foreground">
                       If {outcome} wins (excluding fees)
@@ -192,6 +192,17 @@ export function PredictionModal({ isOpen, onClose, market, outcome }: Prediction
                   </div>
                 </div>
               )}
+
+              {/* Transaction Note */}
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <div className="text-blue-600 dark:text-blue-400 text-sm">ℹ️</div>
+                  <div className="text-sm text-blue-800 dark:text-blue-200">
+                    <p className="font-medium mb-1">Transaction Note:</p>
+                    <p>MetaMask will show ETH in the transaction modal, but this represents USDC value. The amount shown in ETH equals your USDC bet amount.</p>
+                  </div>
+                </div>
+              </div>
 
               {/* Submit Buttons */}
               <div className="flex gap-3 pt-4">

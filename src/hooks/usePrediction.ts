@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import React, { useState } from 'react';
+import { useAccount, useWaitForTransactionReceipt } from 'wagmi';
+import { useContract } from './useContract';
 import { contractService } from '../services/contract';
-import { PREDICTION_MARKET_ABI, CONTRACT_ADDRESS } from '../lib/contract-abi';
 
 export interface PredictionParams {
   marketId: string;
   outcome: 'YES' | 'NO';
-  amount: number; // in ETH
+  amount: number; // in USDC
 }
 
 export interface StoredPrediction {
@@ -55,11 +55,20 @@ export const getPredictionById = (id: string): StoredPrediction | null => {
 export function usePrediction() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [txHash, setTxHash] = useState<`0x${string}` | null>(null);
   const { address, isConnected } = useAccount();
-  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { placeBet } = useContract();
+  
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
-    hash,
+    hash: txHash!,
   });
+
+  // Reset txHash when transaction is confirmed or failed
+  React.useEffect(() => {
+    if (isSuccess || (txHash && !isConfirming && !isSuccess)) {
+      setTxHash(null);
+    }
+  }, [isSuccess, isConfirming, txHash]);
 
   const placePrediction = async (params: PredictionParams): Promise<boolean> => {
     if (!isConnected || !address) {
@@ -76,40 +85,69 @@ export function usePrediction() {
       // Convert outcome to number (0 = NO, 1 = YES)
       const outcome = params.outcome === 'YES' ? 1 : 0;
       
-      // Convert amount to wei (assuming amount is in ETH)
-      const amountInWei = BigInt(Math.floor(params.amount * 1e18));
+      // Convert market ID to numeric format for smart contract
+      let numericMarketId: number;
+      try {
+        // Handle different market ID formats
+        if (params.marketId.startsWith('0x')) {
+          // Hex string: convert to BigInt then to number (with safe bounds)
+          const hexValue = BigInt(params.marketId);
+          // Ensure it fits in a safe integer range for the contract
+          numericMarketId = Number(hexValue % BigInt(Number.MAX_SAFE_INTEGER));
+        } else if (params.marketId.includes('_')) {
+          // String format like "game_1002_1761526161": extract the first number
+          const numericMatch = params.marketId.match(/\d+/);
+          if (numericMatch) {
+            numericMarketId = parseInt(numericMatch[0]);
+          } else {
+            throw new Error('No numeric part found in market ID');
+          }
+        } else {
+          // Direct numeric string
+          numericMarketId = parseInt(params.marketId);
+          if (isNaN(numericMarketId)) {
+            throw new Error('Invalid numeric market ID');
+          }
+        }
+      } catch (idError) {
+        console.error('Error converting market ID:', idError);
+        setError('Invalid market ID format');
+        return false;
+      }
       
-      // Call smart contract placeBet function
-      writeContract({
-        address: CONTRACT_ADDRESS,
-        abi: PREDICTION_MARKET_ABI,
-        functionName: 'placeBet',
-        args: [BigInt(params.marketId), outcome],
-        value: amountInWei,
-      });
+      console.log('Using numeric market ID:', numericMarketId);
+      
+      // Call smart contract placeBet function using USDC amount
+      const result = await placeBet(
+        numericMarketId,
+        outcome as 0 | 1,
+        params.amount.toString()
+      );
 
-      // Wait for transaction confirmation
-      if (isSuccess && hash) {
-        // Record prediction in backend
-        await contractService.createPrediction({
-          market_id: params.marketId,
-          user_address: address,
-          outcome: outcome,
-          amount: Math.floor(params.amount * 1e18),
-          transaction_hash: hash
-        });
-
-        // Store prediction locally for UI
-        const prediction: StoredPrediction = {
-          id: `${params.marketId}-${Date.now()}`,
-          marketId: params.marketId,
-          outcome: params.outcome,
-          amount: params.amount,
-          timestamp: Date.now(),
-        };
+      if (result) {
+        console.log('Transaction submitted:', result);
+        // Set the transaction hash for confirmation tracking
+        setTxHash(result as `0x${string}`);
         
-        savePredictions([prediction]);
-        return true;
+        // Wait for transaction confirmation
+        console.log('Waiting for transaction confirmation...');
+        
+        // Create a promise that resolves when transaction is confirmed
+        return new Promise<boolean>((resolve) => {
+          const checkConfirmation = () => {
+            if (isSuccess) {
+              console.log('Transaction confirmed!');
+              resolve(true);
+            } else if (txHash && !isConfirming && !isSuccess) {
+              console.log('Transaction failed');
+              resolve(false);
+            } else {
+              // Still waiting, check again in 100ms
+              setTimeout(checkConfirmation, 100);
+            }
+          };
+          checkConfirmation();
+        });
       }
       
       return false;
@@ -124,10 +162,10 @@ export function usePrediction() {
 
   return {
     placePrediction,
-    isLoading: isLoading || isPending || isConfirming,
-    error: error || writeError?.message,
+    isLoading: isLoading || isConfirming,
+    error: error,
     isConnected,
-    hash,
+    hash: txHash,
     isSuccess,
   };
 }

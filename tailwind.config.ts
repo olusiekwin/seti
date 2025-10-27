@@ -7,10 +7,50 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        lg: "2rem",
+        xl: "2.5rem",
+        "2xl": "3rem",
       },
+      screens: {
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1400px",
+        "3xl": "1600px",
+      },
+    },
+    screens: {
+      xs: "475px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1400px",
+      "3xl": "1600px",
+      // Mobile-first approach
+      "mobile-sm": "320px",
+      "mobile-md": "375px",
+      "mobile-lg": "414px",
+      // Tablet breakpoints
+      "tablet-sm": "640px",
+      "tablet-md": "768px",
+      "tablet-lg": "1024px",
+      // Desktop breakpoints
+      "desktop-sm": "1280px",
+      "desktop-md": "1440px",
+      "desktop-lg": "1920px",
+      // Landscape orientations
+      "landscape": { "raw": "(orientation: landscape)" },
+      "portrait": { "raw": "(orientation: portrait)" },
+      // High DPI displays
+      "retina": { "raw": "(-webkit-min-device-pixel-ratio: 2)" },
+      // Touch devices
+      "touch": { "raw": "(hover: none) and (pointer: coarse)" },
+      "no-touch": { "raw": "(hover: hover) and (pointer: fine)" },
     },
     extend: {
       fontFamily: {

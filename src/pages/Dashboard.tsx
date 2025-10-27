@@ -4,7 +4,7 @@ import { Layout } from "@/components/Layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TrendingUp, DollarSign, Activity, BarChart3, Plus, Clock, TrendingDown } from "lucide-react"
+import { TrendingUp, DollarSign, Activity, BarChart3, Plus, Clock, TrendingDown, Target, Award, Zap, Eye } from "lucide-react"
 import { Link } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { useUserPredictions } from "@/hooks/useUserPredictions"
@@ -25,6 +25,12 @@ export default function Dashboard() {
     activePositions: 0,
     closedPositions: 0,
     activeValue: 0,
+    avgPositionSize: 0,
+    bestWin: 0,
+    worstLoss: 0,
+    streak: 0,
+    totalMarkets: 0,
+    roi: 0,
   })
 
   useEffect(() => {
@@ -39,16 +45,50 @@ export default function Dashboard() {
     try {
       const response = await usersApi.getStats(address)
       if (response.stats) {
+        // Calculate additional metrics from predictions
+        const activePredictions = predictions.filter(p => p.market && !p.market.resolved)
+        const closedPredictions = predictions.filter(p => p.market && p.market.resolved)
+        const wonPredictions = closedPredictions.filter(p => p.market?.winning_outcome === p.outcome)
+        
+        const totalInvested = response.stats.total_volume / 1000000000
+        const totalPayout = wonPredictions.reduce((sum, p) => sum + (p.shares || 0) / 1000000000, 0)
+        const totalProfit = totalPayout - totalInvested
+        const roi = totalInvested > 0 ? (totalProfit / totalInvested) * 100 : 0
+        
+        // Calculate best win and worst loss
+        const profits = closedPredictions.map(p => {
+          const isWin = p.market?.winning_outcome === p.outcome
+          return isWin ? (p.shares || 0) / 1000000000 - (p.amount || 0) / 1000000000 : 0
+        })
+        const bestWin = Math.max(...profits, 0)
+        const worstLoss = Math.min(...profits, 0)
+        
+        // Calculate average position size
+        const avgPositionSize = predictions.length > 0 
+          ? predictions.reduce((sum, p) => sum + (p.amount || 0) / 1000000000, 0) / predictions.length 
+          : 0
+        
+        // Calculate current streak (simplified)
+        const recentPredictions = closedPredictions.slice(-5)
+        const recentWins = recentPredictions.filter(p => p.market?.winning_outcome === p.outcome).length
+        const streak = recentWins === recentPredictions.length ? recentWins : 0
+        
         setStats({
-          totalInvested: response.stats.total_volume / 1000000000,
-          totalPayout: 0, // TODO: Calculate from won predictions
-          totalProfit: response.stats.total_pnl / 1000000000,
+          totalInvested,
+          totalPayout,
+          totalProfit,
           wins: response.stats.wins,
           losses: response.stats.losses,
           winRate: response.stats.win_rate,
-          activePositions: response.stats.total_predictions,
-          closedPositions: response.stats.wins + response.stats.losses,
-          activeValue: response.stats.total_volume / 1000000000,
+          activePositions: activePredictions.length,
+          closedPositions: closedPredictions.length,
+          activeValue: activePredictions.reduce((sum, p) => sum + (p.amount || 0) / 1000000000, 0),
+          avgPositionSize,
+          bestWin,
+          worstLoss,
+          streak,
+          totalMarkets: predictions.length,
+          roi,
         })
       }
     } catch (error: any) {
@@ -70,7 +110,7 @@ export default function Dashboard() {
   if (!isReady || isConnecting) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-7xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gradient-gold mb-4">Dashboard</h1>
             <p className="text-muted-foreground mb-8">Loading wallet connection...</p>
@@ -84,7 +124,7 @@ export default function Dashboard() {
   if (shouldShowConnectPrompt) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-7xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gradient-gold mb-4">Dashboard</h1>
             <p className="text-muted-foreground mb-8">Connect your wallet to view your dashboard</p>
@@ -97,64 +137,74 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 max-w-7xl">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gradient-gold mb-2">Dashboard</h1>
           <p className="text-muted-foreground">Track your predictions and portfolio performance</p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Value</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gradient-gold">${stats.activeValue.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">Active positions value</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Positions</CardTitle>
-              <Activity className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activePositions}</div>
-              <p className="text-xs text-muted-foreground mt-1">Across all markets</p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Profit/Loss</CardTitle>
-              {stats.totalProfit >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-success" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-danger" />
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${stats.totalProfit >= 0 ? "text-success" : "text-danger"}`}>
-                ${Math.abs(stats.totalProfit).toFixed(2)}
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Portfolio Value</CardTitle>
+                <DollarSign className="h-4 w-4 text-primary" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">All-time performance</p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.activeValue.toFixed(2)} USDC</div>
+              <p className="text-sm text-muted-foreground mt-1">Active positions</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Win Rate</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total P&L</CardTitle>
+                {stats.totalProfit >= 0 ? (
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-4 w-4 text-red-500" />
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.winRate.toFixed(0)}%</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats.wins} wins / {stats.closedPositions} total
+              <div className={`text-3xl font-bold ${stats.totalProfit >= 0 ? "text-green-500" : "text-red-500"}`}>
+                {stats.totalProfit >= 0 ? "+" : ""}{stats.totalProfit.toFixed(2)} USDC
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                ROI: {stats.roi.toFixed(1)}%
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Win Rate</CardTitle>
+                <Target className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.winRate.toFixed(0)}%</div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {stats.wins}W / {stats.losses}L
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50 hover:border-primary/30 transition-colors">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Active Positions</CardTitle>
+                <Activity className="h-4 w-4 text-primary" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-foreground">{stats.activePositions}</div>
+              <p className="text-sm text-muted-foreground mt-1">Open trades</p>
             </CardContent>
           </Card>
         </div>
@@ -211,11 +261,11 @@ export default function Dashboard() {
                                   <Clock className="w-3 h-3" />
                                   {new Date(prediction.timestamp * 1000).toLocaleDateString()}
                                 </span>
-                                <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} ETH</span>
+                                <span>Amount: {(prediction.amount / 1000000000).toFixed(2)} USDC</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} ETH</div>
+                              <div className="text-sm font-bold text-foreground mb-1">{(prediction.amount / 1000000000).toFixed(2)} USDC</div>
                               <div className="text-xs text-muted-foreground">
                                 Shares: {(prediction.shares / 1000000000).toFixed(2)}
                               </div>
@@ -284,12 +334,12 @@ export default function Dashboard() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} ETH</div>
+                                <div className="text-sm font-bold text-foreground mb-1">{prediction.amount} USDC</div>
                                 <div
                                   className={`text-xs font-semibold ${profit >= 0 ? "text-success" : "text-danger"}`}
                                 >
                                   {profit >= 0 ? "+" : ""}
-                                  {profit.toFixed(2)} ETH
+                                  {profit.toFixed(2)} USDC
                                 </div>
                               </div>
                             </div>

@@ -1,3 +1,6 @@
+/* Import mobile-specific styles */
+@import './styles/mobile.css';
+
 /* Import casino-style font for the SETI logo */
 @import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
 

@@ -2,49 +2,35 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function MarketCardSkeleton() {
   return (
-    <div className="market-card group p-4 md:p-5 w-full max-w-sm mx-auto h-[480px] flex flex-col bg-background/50 backdrop-blur-sm border border-border/50 rounded-xl shadow-lg">
-      {/* Image Skeleton */}
-      <Skeleton className="w-full h-28 md:h-32 mb-3 md:mb-4 rounded-lg" />
-
-      {/* Header with Badge */}
-      <div className="flex items-start justify-between mb-3 flex-shrink-0">
-        <Skeleton className="h-6 w-20 rounded-full" />
-        <Skeleton className="h-6 w-24 rounded-full" />
+    <div className="market-card group p-3 sm:p-4 w-full max-w-sm mx-auto h-[400px] sm:h-[450px] flex flex-col bg-background/30 dark:bg-black/20 backdrop-blur-sm border border-border/40 dark:border-white/20 rounded-xl shadow-sm">
+      {/* Header with Icon and Title */}
+      <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
+        <Skeleton className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <Skeleton className="h-4 sm:h-5 w-full mb-1 sm:mb-2" />
+          <Skeleton className="h-4 sm:h-5 w-3/4 mb-1" />
+          <Skeleton className="h-3 w-20 rounded-full" />
+        </div>
       </div>
 
-      {/* Title */}
-      <Skeleton className="h-6 w-full mb-2" />
-      <Skeleton className="h-6 w-3/4 mb-2" />
-
-      {/* Description */}
-      <Skeleton className="h-4 w-full mb-1" />
-      <Skeleton className="h-4 w-5/6 mb-3" />
-
-      {/* Market Stats */}
-      <div className="mb-3 p-3 bg-muted/20 rounded-lg flex-shrink-0 border border-border/20">
-        <div className="flex items-center justify-between mb-2">
-          <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-3 w-16" />
-        </div>
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-3 w-16" />
-        </div>
+      {/* Live Score Skeleton */}
+      <div className="mb-3">
+        <Skeleton className="h-4 w-32 rounded" />
       </div>
 
       {/* Price Buttons */}
-      <div className="grid grid-cols-2 gap-2 mb-3 flex-shrink-0">
-        <Skeleton className="h-12 rounded-xl" />
-        <Skeleton className="h-12 rounded-xl" />
+      <div className="flex gap-2 mb-3 flex-shrink-0">
+        <Skeleton className="flex-1 h-8 rounded-lg" />
+        <Skeleton className="flex-1 h-8 rounded-lg" />
       </div>
 
-      {/* Chart removed from card skeleton */}
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1 mt-auto">
-        <Skeleton className="h-6 w-16 rounded-full" />
-        <Skeleton className="h-6 w-20 rounded-full" />
-        <Skeleton className="h-6 w-14 rounded-full" />
+      {/* Bottom Section */}
+      <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-border/50 mt-auto">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Skeleton className="h-3 w-8" />
+          <Skeleton className="h-3 w-12" />
+        </div>
+        <Skeleton className="w-8 h-8 rounded-md" />
       </div>
     </div>
   )

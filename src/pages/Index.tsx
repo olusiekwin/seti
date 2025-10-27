@@ -1,23 +1,23 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { MarketCard } from "@/components/MarketCard"
 import { MarketCardSkeleton } from "@/components/MarketCardSkeleton"
 import { SharedPredictionModal, PredictionReceiptModal } from "@/components/SharedPredictionModal"
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Plus, TrendingUp, Search, Filter, Bookmark } from "lucide-react"
+import { ArrowRight, Plus, TrendingUp } from "lucide-react"
 import { useMarkets } from "@/hooks/useMarkets"
 import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
 import { useFavorites } from "@/hooks/useFavorites"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { Layout } from "@/components/Layout"
+import { MarketDetailsSidebar } from "@/components/MarketDetailsSidebar"
+import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
 
 const Index = () => {
-  const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
-  const [showFilter, setShowFilter] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   
   const { isConnected } = useWalletConnection()
@@ -26,7 +26,6 @@ const Index = () => {
   const { markets, isLoading, error, refetch } = useMarkets({
     category: activeTab === "all" ? undefined : activeTab,
     sort_by: sortBy as 'volume_24h' | 'total_liquidity' | 'created_timestamp',
-    search: searchQuery || undefined,
     status: 'active'
   })
   
@@ -43,16 +42,8 @@ const Index = () => {
     closeReceipt,
   } = usePredictionModalContext()
 
-  // Listen for search events from the header
-  useEffect(() => {
-    const handleSearch = (event: Event) => {
-      const searchEvent = event as CustomEvent<{ query: string }>;
-      setSearchQuery(searchEvent.detail.query);
-    };
+  const { isOpen: isSidebarOpen, selectedMarket: sidebarMarket, closeSidebar } = useMarketSidebar()
 
-    window.addEventListener('marketSearch', handleSearch);
-    return () => window.removeEventListener('marketSearch', handleSearch);
-  }, []);
 
   // Filter markets based on saved state
   const filteredMarkets = showSaved 
@@ -85,111 +76,32 @@ const Index = () => {
                 </div>
               </TabsList>
 
-              {/* Seti Search & Filter Bar */}
-              <div className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10 mb-4">
-                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full items-center">
-                  <div className="relative flex items-center px-3">
-                    <Search className="w-4 h-4 text-muted-foreground mr-2" />
-                    <input 
-                      type="text" 
-                      placeholder="Search Seti markets..." 
-                      value={searchQuery}
-                      className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        const searchEvent = new CustomEvent('marketSearch', {
-                          detail: { query: e.target.value.toLowerCase() }
-                        });
-                        window.dispatchEvent(searchEvent);
-                      }}
-                    />
+
+              {/* Controls with Saved Toggle */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">Sort by:</span>
+                    <select 
+                      value={sortBy} 
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="bg-muted/30 border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                    >
+                      <option value="created_timestamp">Newest</option>
+                      <option value="volume_24h">Volume</option>
+                      <option value="total_liquidity">Liquidity</option>
+                    </select>
                   </div>
-                  <div className="flex items-center text-muted-foreground px-2">|</div>
                   <button 
-                    className={`flex items-center px-3 transition-colors ${
-                      showFilter 
-                        ? 'text-[hsl(208,65%,75%)] bg-[hsl(208,65%,75%)]/10' 
-                        : 'text-muted-foreground hover:text-foreground'
-                    }`}
-                    onClick={() => setShowFilter(!showFilter)}
-                  >
-                    <Filter className="w-4 h-4 mr-1" />
-                    Filter
-                  </button>
-                  <button 
-                    className={`flex items-center px-3 transition-colors ${
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       showSaved 
-                        ? 'text-[hsl(208,65%,75%)] bg-[hsl(208,65%,75%)]/10' 
-                        : 'text-muted-foreground hover:text-foreground'
+                        ? 'bg-blue-500 text-white' 
+                        : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
                     }`}
                     onClick={() => setShowSaved(!showSaved)}
                   >
-                    <Bookmark className="w-4 h-4 mr-1" />
-                    Saved {showSaved && `(${filteredMarkets.length})`}
+                    {showSaved ? 'Show All' : 'Show Saved'}
                   </button>
-                  <div className="flex items-center text-muted-foreground px-2">|</div>
-                  <button className="bg-[hsl(208,65%,75%)] text-background px-3 py-1 rounded-md text-sm font-medium">
-                    Active
-                  </button>
-                  <div className="flex items-center gap-2 px-3 overflow-x-auto scrollbar-hide">
-                    <span className="text-xs text-muted-foreground">
-                      {markets.length} markets
-                    </span>
-                    <ArrowRight className="w-3 h-3 text-muted-foreground" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Filter Dropdown */}
-              {showFilter && (
-                <div className="bg-muted/30 border border-border/50 rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium">Sort by:</label>
-                      <select 
-                        value={sortBy} 
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-background border border-border rounded px-2 py-1 text-sm"
-                      >
-                        <option value="created_timestamp">Newest</option>
-                        <option value="volume_24h">Volume</option>
-                        <option value="total_liquidity">Liquidity</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <label className="text-sm font-medium">Status:</label>
-                      <select 
-                        className="bg-background border border-border rounded px-2 py-1 text-sm"
-                        defaultValue="active"
-                      >
-                        <option value="active">Active</option>
-                        <option value="resolved">Resolved</option>
-                      </select>
-                    </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setShowFilter(false)}
-                    >
-                      Close
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {/* Sorting Controls */}
-              <div className="flex items-center justify-between mt-4 mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Sort by:</span>
-                  <select 
-                    value={sortBy} 
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="bg-muted/30 border border-border/50 rounded-md px-3 py-1 text-sm text-foreground"
-                  >
-                    <option value="created_timestamp">Newest</option>
-                    <option value="volume_24h">Volume</option>
-                    <option value="total_liquidity">Liquidity</option>
-                  </select>
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {filteredMarkets.length} markets
@@ -214,7 +126,7 @@ const Index = () => {
                       Try Again
                     </Button>
                   </div>
-                ) : markets.length === 0 || (searchQuery && filteredMarkets.length === 0) ? (
+                ) : markets.length === 0 ? (
                   <div className="text-center py-12">
                     <Plus className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                     <h3 className="text-xl font-semibold mb-2">No markets yet</h3>
@@ -244,8 +156,8 @@ const Index = () => {
                 ) : (
                   <div>
                     {showSaved && (
-                      <div className="mb-4 p-3 bg-[hsl(208,65%,75%)]/10 border border-[hsl(208,65%,75%)]/20 rounded-lg">
-                        <p className="text-sm text-[hsl(208,65%,75%)]">
+                      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-700">
                           📌 Showing {filteredMarkets.length} saved market{filteredMarkets.length !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -263,7 +175,7 @@ const Index = () => {
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
                         {filteredMarkets.map((market, index) => (
                           <ErrorBoundary key={market.id}>
                             <MarketCard
@@ -279,12 +191,12 @@ const Index = () => {
               </TabsContent>
             </Tabs>
 
-            {/* Load More */}
+            {/* Load More - Simplified */}
             {!isLoading && markets.length > 0 && (
-              <div className="text-center mt-6 md:mt-8">
+              <div className="text-center mt-8">
                 <Button
                   size="lg"
-                  className="gap-2 w-full sm:w-auto transition-all duration-200 hover:scale-105 bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background"
+                  className="gap-2 w-full sm:w-auto transition-all duration-200 hover:scale-105 bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background rounded-xl"
                   onClick={() => {
                     refetch();
                   }}
@@ -308,6 +220,13 @@ const Index = () => {
 
         {/* Prediction Receipt Modal */}
         <PredictionReceiptModal isOpen={showReceipt} onClose={closeReceipt} receipt={receipt} />
+
+        {/* Market Details Sidebar */}
+        <MarketDetailsSidebar
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+          market={sidebarMarket}
+        />
       </div>
     </Layout>
   )

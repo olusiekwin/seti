@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MarketData, UseMarketResult } from '@/types/contract';
 import { marketsApi } from '@/services/api';
+import { useContractMarket } from './useContract';
 
 /**
  * Hook to fetch a single market by ID
@@ -10,6 +11,9 @@ export function useMarket(marketId: string): UseMarketResult {
   const [data, setData] = useState<MarketData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Use smart contract hook for blockchain data
+  const { market: contractMarket, isLoading: contractLoading, error: contractError } = useContractMarket(parseInt(marketId));
 
   const fetchMarket = useCallback(async () => {
     if (!marketId) {
@@ -31,40 +35,33 @@ export function useMarket(marketId: string): UseMarketResult {
       console.warn('Backend fetch failed, will try blockchain:', backendError);
     }
 
-    try {
-      // Fallback to blockchain (slower but more reliable)
-      // For now, we'll simulate this since we removed dapp-kit
-      // In a real implementation, you'd use a direct RPC call or another client
-      console.log('Fetching market from blockchain:', marketId);
-      
-      // Simulate blockchain fetch
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock data for now
-      const mockMarket: MarketData = {
+    // If backend fails, use contract data
+    if (contractMarket) {
+      const marketData: MarketData = {
         id: marketId,
-        question: "Sample Market Question",
-        description: "This is a sample market",
-        category: "Technology",
-        image_url: "",
-        end_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString(),
-        status: "active",
-        total_liquidity: 1000,
-        yes_price: 0.5,
-        no_price: 0.5,
-        total_volume: 500,
-        tags: ["sample", "test"]
+        question: contractMarket.question,
+        description: contractMarket.description,
+        category: 'Unknown', // Contract doesn't store category
+        end_time: Number(contractMarket.endTime),
+        total_liquidity: Number(contractMarket.yesPool + contractMarket.noPool),
+        outcome_a_shares: Number(contractMarket.noPool),
+        outcome_b_shares: Number(contractMarket.yesPool),
+        volume_24h: 0, // Contract doesn't track 24h volume
+        resolved: contractMarket.resolved,
+        winning_outcome: contractMarket.winningOutcome,
+        created_timestamp: 0, // Contract doesn't store creation time
+        tags: [], // Contract doesn't store tags
+        image_url: '', // Contract doesn't store images
+        status: contractMarket.resolved ? 'resolved' : 'active'
       };
       
-      setData(mockMarket);
-    } catch (blockchainError) {
-      console.error('Blockchain fetch failed:', blockchainError);
-      setError('Failed to fetch market data');
-    } finally {
-      setIsLoading(false);
+      setData(marketData);
+    } else if (contractError) {
+      setError(contractError);
+    } else {
+      setError('Market not found');
     }
-  }, [marketId]);
+  }, [marketId, contractMarket, contractError]);
 
   useEffect(() => {
     fetchMarket();
@@ -72,7 +69,7 @@ export function useMarket(marketId: string): UseMarketResult {
 
   return {
     data,
-    isLoading,
+    isLoading: isLoading || contractLoading,
     error,
     refetch: fetchMarket
   };

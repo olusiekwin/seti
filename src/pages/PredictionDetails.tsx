@@ -31,7 +31,7 @@ export default function PredictionDetails() {
   if (!prediction) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 max-w-4xl">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-4xl">
           <div className="text-center">
             <AlertCircle className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h1 className="text-2xl font-bold mb-2">Prediction Not Found</h1>
@@ -57,7 +57,7 @@ export default function PredictionDetails() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 md:py-12 max-w-4xl">
         {/* Back Button */}
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-6 gap-2">
           <ArrowLeft className="w-4 h-4" />
@@ -144,7 +144,7 @@ export default function PredictionDetails() {
 
                   <div>
                     <div className="text-sm text-muted-foreground mb-1">Amount Invested</div>
-                    <div className="text-2xl font-bold text-foreground">{prediction.amount} ETH</div>
+                    <div className="text-2xl font-bold text-foreground">{prediction.amount} USDC</div>
                   </div>
 
                   <div>
@@ -160,8 +160,8 @@ export default function PredictionDetails() {
                     </div>
                     <div className="text-2xl font-bold text-gradient-gold">
                       {isActive
-                        ? `${prediction.potentialPayout.toFixed(2)} ETH`
-                        : `${(prediction.actualPayout || 0).toFixed(2)} ETH`}
+                        ? `${prediction.potentialPayout.toFixed(2)} USDC`
+                        : `${(prediction.actualPayout || 0).toFixed(2)} USDC`}
                     </div>
                   </div>
 
@@ -170,7 +170,7 @@ export default function PredictionDetails() {
                       <div className="text-sm text-muted-foreground mb-1">Profit/Loss</div>
                       <div className={`text-2xl font-bold ${profit >= 0 ? "text-success" : "text-danger"}`}>
                         {profit >= 0 ? "+" : ""}
-                        {profit.toFixed(2)} ETH
+                        {profit.toFixed(2)} USDC
                       </div>
                     </div>
                   )}

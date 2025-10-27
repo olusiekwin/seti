@@ -45,7 +45,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
         return <TrendingDown className="w-5 h-5 text-red-400" />
       }
     }
-    return <XCircle className="w-5 h-5 text-gray-400" />
+    return <XCircle className="w-5 h-5 text-muted-foreground" />
   }
 
   const getStatusColor = (status: string, outcome?: string, winningOutcome?: string) => {
@@ -62,7 +62,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
         return 'bg-red-500/20 text-red-400 border-red-500/30'
       }
     }
-    return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+    return 'bg-muted/20 text-muted-foreground border-border'
   }
 
   const getStatusText = (status: string, outcome?: string, winningOutcome?: string) => {
@@ -96,7 +96,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
   }
 
   const formatAmount = (amount: number) => {
-    return (amount / 1000000000).toFixed(2) // Convert from smallest unit to ETH
+    return (amount / 1000000).toFixed(2) // Convert from smallest unit to USDC (6 decimals)
   }
 
   return (
@@ -108,18 +108,18 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
       />
       
       {/* Sidebar */}
-      <div className="w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-xl">
+      <div className="w-96 bg-background border-l border-border shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-3">
             <Receipt className="w-6 h-6 text-blue-600" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Prediction Slip</h2>
+            <h2 className="text-xl font-bold text-foreground">Prediction Slip</h2>
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClose}
-            className="h-8 w-8 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="h-8 w-8 p-0 hover:bg-muted"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -215,7 +215,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
                 <div className="flex justify-between">
                   <span className="text-slate-600 dark:text-slate-400">Amount:</span>
                   <span className="font-medium text-slate-900 dark:text-white">
-                    {formatAmount(slipData.amount)} ETH
+                    {formatAmount(slipData.amount)} USDC
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -234,7 +234,7 @@ export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionS
                   <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-3">
                     <span className="text-slate-600 dark:text-slate-400">Payout:</span>
                     <span className="font-bold text-green-600 dark:text-green-400">
-                      {formatAmount(slipData.payout)} ETH
+                      {formatAmount(slipData.payout)} USDC
                     </span>
                   </div>
                 )}

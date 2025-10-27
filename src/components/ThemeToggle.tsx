@@ -1,55 +1,34 @@
-import { Button } from "@/components/ui/button"
-import { Moon, Sun, Monitor } from "lucide-react"
+import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/contexts/ThemeContext"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export function ThemeToggle() {
-  const { theme, setTheme, actualTheme } = useTheme()
+  const { actualTheme, setTheme } = useTheme()
+
+  const toggleTheme = () => {
+    setTheme(actualTheme === 'dark' ? 'light' : 'dark')
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="rounded-xl bg-transparent hover:bg-[hsl(208,65%,75%)] hover:text-background border-[hsl(208,65%,75%)]"
+    <div className="flex items-center">
+      <button
+        onClick={toggleTheme}
+        className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[hsl(208,65%,75%)] focus:ring-offset-2 bg-[hsl(208,65%,75%)]"
+        role="switch"
+        aria-checked={actualTheme === 'dark'}
+        aria-label="Toggle theme"
+      >
+        <span
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${
+            actualTheme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+          }`}
         >
           {actualTheme === 'dark' ? (
-            <Moon className="w-4 h-4" />
+            <Moon className="h-3 w-3 text-gray-600 m-0.5" />
           ) : (
-            <Sun className="w-4 h-4" />
+            <Sun className="h-3 w-3 text-yellow-500 m-0.5" />
           )}
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem 
-          onClick={() => setTheme('light')}
-          className={`flex items-center gap-2 ${theme === 'light' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
-        >
-          <Sun className="w-4 h-4" />
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme('dark')}
-          className={`flex items-center gap-2 ${theme === 'dark' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
-        >
-          <Moon className="w-4 h-4" />
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem 
-          onClick={() => setTheme('system')}
-          className={`flex items-center gap-2 ${theme === 'system' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
-        >
-          <Monitor className="w-4 h-4" />
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </span>
+      </button>
+    </div>
   )
 }

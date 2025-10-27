@@ -78,7 +78,7 @@ Status: ${isResolved ? (isWon ? 'WON' : isLost ? 'LOST' : 'PENDING') : 'ACTIVE'}
 
 Prediction Details:
 - Outcome: ${prediction.outcome}
-- Amount: ${prediction.amount} ETH
+- Amount: ${prediction.amount} USDC
 - Shares: ${prediction.shares}
 - Price: ${(prediction.price * 100).toFixed(2)}%
 - Transaction: ${prediction.transaction_hash}
@@ -185,7 +185,7 @@ Resolution:
                 
                 <div>
                   <Label className="text-sm text-muted-foreground">Amount</Label>
-                  <p className="font-medium">{prediction.amount} ETH</p>
+                  <p className="font-medium">{prediction.amount} USDC</p>
                 </div>
                 
                 <div>

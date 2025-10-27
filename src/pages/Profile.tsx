@@ -9,31 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { User, Settings, Bell, Shield, Copy, Check } from "lucide-react"
 import { useState } from "react"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
+import { useUserPreferences } from "@/hooks/useUserPreferences"
 
 export default function Profile() {
   const { isConnected, address, isConnecting, isReady, shouldShowConnectPrompt, isWalletReady } = useWalletConnection()
+  const { preferences, updateProfile, updateNotificationSettings, updateTheme, isLoading: preferencesLoading } = useUserPreferences()
   const currentAccount = address ? { address } : null
   const [copied, setCopied] = useState(false)
-  
-  // Notification settings state
-  const [notifications, setNotifications] = useState({
-    marketUpdates: true,
-    positionAlerts: true,
-    marketResolution: true
-  })
-  
-  // Profile settings state
-  const [profile, setProfile] = useState({
-    username: '',
-    bio: ''
-  })
-  
-  // Settings state
-  const [settings, setSettings] = useState({
-    darkMode: true,
-    autoConnect: true,
-    currency: 'USD'
-  })
 
   const copyAddress = async () => {
     if (currentAccount?.address) {
@@ -44,70 +26,59 @@ export default function Profile() {
   }
 
   // Handler functions
-  const handleSaveProfile = () => {
-    // Save profile settings to localStorage
-    localStorage.setItem('seti_profile', JSON.stringify(profile))
-    alert('Profile saved successfully!')
+  const handleSaveProfile = async () => {
+    const success = await updateProfile({
+      username: preferences.username,
+      bio: preferences.bio
+    })
+
+    if (success) {
+      alert('Profile saved successfully!')
+    } else {
+      alert('Failed to save profile. Please try again.')
+    }
   }
 
-  const handleNotificationToggle = (key: keyof typeof notifications) => {
-    setNotifications(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }))
-    // Save to localStorage
-    localStorage.setItem('seti_notifications', JSON.stringify({
-      ...notifications,
-      [key]: !notifications[key]
-    }))
+  const handleNotificationToggle = async (key: keyof typeof preferences.notification_settings) => {
+    const success = await updateNotificationSettings({
+      [key]: !preferences.notification_settings[key]
+    })
+
+    if (!success) {
+      alert('Failed to update notification settings. Please try again.')
+    }
   }
 
-  const handleSettingsToggle = (key: keyof typeof settings) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }))
-    // Save to localStorage
-    localStorage.setItem('seti_settings', JSON.stringify({
-      ...settings,
-      [key]: !settings[key]
-    }))
+  const handleThemeChange = async (theme: 'light' | 'dark' | 'system') => {
+    const success = await updateTheme(theme)
+
+    if (!success) {
+      alert('Failed to update theme. Please try again.')
+    }
   }
 
-  const handleCurrencyChange = (currency: string) => {
-    setSettings(prev => ({
-      ...prev,
-      currency
-    }))
-    localStorage.setItem('seti_settings', JSON.stringify({
-      ...settings,
-      currency
-    }))
-  }
-
-  // Show loading state while wallet is initializing
-  if (!isReady || isConnecting) {
+  // Show loading state while wallet is initializing or preferences are loading
+  if (!isReady || isConnecting || preferencesLoading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-7xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gradient-gold mb-4">Profile</h1>
-            <p className="text-muted-foreground mb-8">Loading wallet connection...</p>
+            <p className="text-muted-foreground mb-8">Loading wallet connection and preferences...</p>
           </div>
         </div>
       </Layout>
     )
   }
 
-  // Show connect prompt if wallet is not connected
-  if (shouldShowConnectPrompt) {
+  // Show connect wallet prompt if not connected
+  if (!isConnected || !address) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-16 max-w-7xl">
+        <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-7xl">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gradient-gold mb-4">Profile</h1>
-            <p className="text-muted-foreground mb-8">Connect your wallet to view your profile</p>
-            <Button className="btn-market-gold">Connect Wallet</Button>
+            <p className="text-muted-foreground mb-8">Please connect your wallet to view your profile</p>
           </div>
         </div>
       </Layout>
@@ -116,27 +87,25 @@ export default function Profile() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gradient-gold mb-2">Profile & Settings</h1>
-          <p className="text-muted-foreground">Manage your account and preferences</p>
+      <div className="container mx-auto px-2 sm:px-4 py-8 sm:py-16 max-w-7xl">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gradient-gold mb-4">Profile</h1>
+          <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
 
-        {/* Profile Tabs */}
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="bg-muted/30 border border-border/50 w-full sm:w-auto">
-            <TabsTrigger value="profile" className="gap-2">
+        <Tabs defaultValue="profile" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
             </TabsTrigger>
-            <TabsTrigger value="settings" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Settings
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
+            <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="w-4 h-4" />
               Notifications
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -144,57 +113,18 @@ export default function Profile() {
           <TabsContent value="profile" className="space-y-6">
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardHeader>
-                <CardTitle>Wallet Information</CardTitle>
-                <CardDescription>Your connected wallet details</CardDescription>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>Update your profile details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address">Wallet Address</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="address"
-                      value={currentAccount?.address || ""}
-                      readOnly
-                      className="font-mono text-sm bg-muted/30"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={copyAddress}
-                      className="flex-shrink-0 bg-transparent"
-                    >
-                      {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                  <div className="p-4 bg-muted/20 rounded-lg border border-border/20">
-                    <div className="text-sm text-muted-foreground mb-1">Total Trades</div>
-                    <div className="text-2xl font-bold">0</div>
-                  </div>
-                  <div className="p-4 bg-muted/20 rounded-lg border border-border/20">
-                    <div className="text-sm text-muted-foreground mb-1">Markets Created</div>
-                    <div className="text-2xl font-bold">0</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>Customize your profile information</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username (Optional)</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input 
                     id="username" 
                     placeholder="Enter username" 
                     className="bg-muted/30" 
-                    value={profile.username}
-                    onChange={(e) => setProfile(prev => ({ ...prev, username: e.target.value }))}
+                    value={preferences.username || ''}
+                    onChange={(e) => updateProfile({ username: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -203,8 +133,8 @@ export default function Profile() {
                     id="bio" 
                     placeholder="Tell us about yourself" 
                     className="bg-muted/30" 
-                    value={profile.bio}
-                    onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))}
+                    value={preferences.bio || ''}
+                    onChange={(e) => updateProfile({ bio: e.target.value })}
                   />
                 </div>
                 <Button 
@@ -213,6 +143,126 @@ export default function Profile() {
                 >
                   Save Changes
                 </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Wallet Information</CardTitle>
+                <CardDescription>Your connected wallet details</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                  <div>
+                    <div className="font-medium">Wallet Address</div>
+                    <div className="text-sm text-muted-foreground font-mono">
+                      {address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Not connected'}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyAddress}
+                    className="bg-[hsl(208,65%,75%)] hover:bg-[hsl(208,65%,85%)] text-background border-[hsl(208,65%,75%)]"
+                  >
+                    {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardHeader>
+                <CardTitle>Notification Preferences</CardTitle>
+                <CardDescription>Choose what updates you want to receive</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between py-4 border-b border-border/20">
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">Market Updates</div>
+                    <div className="text-sm text-muted-foreground mt-1">Get notified about market changes</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">
+                      {preferences.notification_settings.marketUpdates ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <button
+                      onClick={() => handleNotificationToggle('marketUpdates')}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[hsl(208,65%,75%)] focus:ring-offset-2 ${
+                        preferences.notification_settings.marketUpdates 
+                          ? 'bg-[hsl(208,65%,75%)]' 
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${
+                          preferences.notification_settings.marketUpdates 
+                            ? 'translate-x-6' 
+                            : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between py-4 border-b border-border/20">
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">Position Alerts</div>
+                    <div className="text-sm text-muted-foreground mt-1">Alerts for your active positions</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">
+                      {preferences.notification_settings.positionAlerts ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <button
+                      onClick={() => handleNotificationToggle('positionAlerts')}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[hsl(208,65%,75%)] focus:ring-offset-2 ${
+                        preferences.notification_settings.positionAlerts 
+                          ? 'bg-[hsl(208,65%,75%)]' 
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${
+                          preferences.notification_settings.positionAlerts 
+                            ? 'translate-x-6' 
+                            : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between py-4">
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">Market Resolution</div>
+                    <div className="text-sm text-muted-foreground mt-1">When markets you're in resolve</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">
+                      {preferences.notification_settings.marketResolution ? 'Enabled' : 'Disabled'}
+                    </span>
+                    <button
+                      onClick={() => handleNotificationToggle('marketResolution')}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[hsl(208,65%,75%)] focus:ring-offset-2 ${
+                        preferences.notification_settings.marketResolution 
+                          ? 'bg-[hsl(208,65%,75%)]' 
+                          : 'bg-muted'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${
+                          preferences.notification_settings.marketResolution 
+                            ? 'translate-x-6' 
+                            : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -227,122 +277,26 @@ export default function Profile() {
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-border/20">
                   <div>
-                    <div className="font-medium">Dark Mode</div>
-                    <div className="text-sm text-muted-foreground">Use dark theme</div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleSettingsToggle('darkMode')}
-                    className={`${settings.darkMode ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
-                  >
-                    {settings.darkMode ? 'Enabled' : 'Disabled'}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-border/20">
-                  <div>
-                    <div className="font-medium">Auto-connect Wallet</div>
-                    <div className="text-sm text-muted-foreground">Automatically connect on visit</div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleSettingsToggle('autoConnect')}
-                    className={`${settings.autoConnect ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
-                  >
-                    {settings.autoConnect ? 'Enabled' : 'Disabled'}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-medium">Show Prices in</div>
-                    <div className="text-sm text-muted-foreground">Display currency preference</div>
+                    <div className="font-medium">Theme Preference</div>
+                    <div className="text-sm text-muted-foreground">Choose your preferred theme</div>
                   </div>
                   <div className="flex gap-2">
-                    {['USD', 'EUR', 'BTC'].map(currency => (
+                    {[
+                      { value: 'light', label: 'Light' },
+                      { value: 'dark', label: 'Dark' },
+                      { value: 'system', label: 'System' }
+                    ].map(theme => (
                       <Button 
-                        key={currency}
+                        key={theme.value}
                         variant="outline" 
                         size="sm"
-                        onClick={() => handleCurrencyChange(currency)}
-                        className={`${settings.currency === currency ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
+                        onClick={() => handleThemeChange(theme.value as 'light' | 'dark' | 'system')}
+                        className={`${preferences.theme_preference === theme.value ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
                       >
-                        {currency}
+                        {theme.label}
                       </Button>
                     ))}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Security
-                </CardTitle>
-                <CardDescription>Manage your security settings</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-muted/20 rounded-lg border border-border/20">
-                  <p className="text-sm text-muted-foreground">
-                    Your wallet connection is secured by your wallet provider. Always verify transactions before
-                    signing.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Notifications Tab */}
-          <TabsContent value="notifications" className="space-y-6">
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Choose what updates you want to receive</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-border/20">
-                  <div>
-                    <div className="font-medium">Market Updates</div>
-                    <div className="text-sm text-muted-foreground">Get notified about market changes</div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleNotificationToggle('marketUpdates')}
-                    className={`${notifications.marketUpdates ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
-                  >
-                    {notifications.marketUpdates ? 'On' : 'Off'}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3 border-b border-border/20">
-                  <div>
-                    <div className="font-medium">Position Alerts</div>
-                    <div className="text-sm text-muted-foreground">Alerts for your active positions</div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleNotificationToggle('positionAlerts')}
-                    className={`${notifications.positionAlerts ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
-                  >
-                    {notifications.positionAlerts ? 'On' : 'Off'}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between py-3">
-                  <div>
-                    <div className="font-medium">Market Resolution</div>
-                    <div className="text-sm text-muted-foreground">When markets you're in resolve</div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleNotificationToggle('marketResolution')}
-                    className={`${notifications.marketResolution ? 'bg-[hsl(208,65%,75%)] text-background' : 'hover:bg-[hsl(208,65%,75%)] hover:text-background'} border-[hsl(208,65%,75%)]`}
-                  >
-                    {notifications.marketResolution ? 'On' : 'Off'}
-                  </Button>
                 </div>
               </CardContent>
             </Card>

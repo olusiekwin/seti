@@ -24,55 +24,30 @@ export function PredictionSlips() {
   const [slips, setSlips] = useState<PredictionSlip[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Mock data for demonstration
+  // Fetch real prediction slips
   useEffect(() => {
     if (address) {
-      // Simulate loading prediction slips
-      setTimeout(() => {
-        setSlips([
-          {
-            id: '1',
-            marketId: 'market1',
-            marketQuestion: 'Will Bitcoin reach $100k by end of 2025?',
-            outcome: 'YES',
-            amount: 100,
-            price: 0.65,
-            shares: 153,
-            timestamp: Date.now() - 86400000, // 1 day ago
-            status: 'confirmed',
-            winningOutcome: undefined,
-            payout: undefined
-          },
-          {
-            id: '2',
-            marketId: 'market2',
-            marketQuestion: 'Will Tesla stock reach $300 by end of 2024?',
-            outcome: 'NO',
-            amount: 50,
-            price: 0.35,
-            shares: 142,
-            timestamp: Date.now() - 172800000, // 2 days ago
-            status: 'resolved',
-            winningOutcome: 'NO',
-            payout: 142
-          },
-          {
-            id: '3',
-            marketId: 'market3',
-            marketQuestion: 'Will the frontend and backend integration work perfectly?',
-            outcome: 'YES',
-            amount: 200,
-            price: 0.25,
-            shares: 800,
-            timestamp: Date.now() - 3600000, // 1 hour ago
-            status: 'pending',
-            winningOutcome: undefined,
-            payout: undefined
+      const fetchSlips = async () => {
+        try {
+          setLoading(true)
+          const response = await fetch(`/api/v1/predictions/${address}`)
+          if (response.ok) {
+            const data = await response.json()
+            setSlips(data.predictions || [])
+          } else {
+            setSlips([])
           }
-        ])
-        setLoading(false)
-      }, 1000)
+        } catch (error) {
+          console.error('Failed to fetch prediction slips:', error)
+          setSlips([])
+        } finally {
+          setLoading(false)
+        }
+      }
+      
+      fetchSlips()
     } else {
+      setSlips([])
       setLoading(false)
     }
   }, [address])
@@ -91,7 +66,7 @@ export function PredictionSlips() {
         return <TrendingDown className="w-4 h-4 text-red-400" />
       }
     }
-    return <XCircle className="w-4 h-4 text-gray-400" />
+    return <XCircle className="w-4 h-4 text-muted-foreground" />
   }
 
   const getStatusColor = (status: string, outcome?: string, winningOutcome?: string) => {
@@ -108,7 +83,7 @@ export function PredictionSlips() {
         return 'bg-red-500/20 text-red-400 border-red-500/30'
       }
     }
-    return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+    return 'bg-muted/20 text-muted-foreground border-border'
   }
 
   const getStatusText = (status: string, outcome?: string, winningOutcome?: string) => {

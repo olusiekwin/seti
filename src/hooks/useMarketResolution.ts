@@ -21,7 +21,7 @@ export function useMarketResolution(): UseMarketResolutionResult {
 
     try {
       // Simulate market resolution
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Remove artificial delay - use real API call
       
       console.log('Market resolved:', params);
       return true;

@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 interface ThemeContextType {
   theme: Theme
   setTheme: (theme: Theme) => void
-  actualTheme: 'light' | 'dark' // The actual theme being used (resolves 'system')
+  actualTheme: Theme // Same as theme since we only have light/dark
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -20,7 +20,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return 'dark'
   })
 
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark')
+  const actualTheme = theme // No need for separate actualTheme since we only have light/dark
+
+  const handleSetTheme = (newTheme: Theme) => {
+    setTheme(newTheme)
+    
+    // Save to localStorage immediately
+    localStorage.setItem('seti-theme', newTheme)
+    
+    // Try to update user preferences if available (but don't fail if not)
+    try {
+      // This will be handled by components that use both theme and user preferences
+      const event = new CustomEvent('theme-changed', { detail: { theme: newTheme } })
+      window.dispatchEvent(event)
+    } catch (error) {
+      // Ignore errors - theme still works locally
+    }
+  }
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -28,44 +44,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Remove previous theme classes
     root.classList.remove('light', 'dark')
     
-    let resolvedTheme: 'light' | 'dark'
-    
-    if (theme === 'system') {
-      // Use system preference
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      resolvedTheme = systemTheme
-    } else {
-      resolvedTheme = theme
-    }
-    
-    // Apply the resolved theme
-    root.classList.add(resolvedTheme)
-    setActualTheme(resolvedTheme)
+    // Apply the theme directly
+    root.classList.add(theme)
     
     // Save to localStorage
     localStorage.setItem('seti-theme', theme)
-    
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = () => {
-      if (theme === 'system') {
-        const systemTheme = mediaQuery.matches ? 'dark' : 'light'
-        root.classList.remove('light', 'dark')
-        root.classList.add(systemTheme)
-        setActualTheme(systemTheme)
-      }
-    }
-    
-    mediaQuery.addEventListener('change', handleChange)
-    
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange)
-    }
   }, [theme])
 
   const value = {
     theme,
-    setTheme,
+    setTheme: handleSetTheme,
     actualTheme
   }
 

@@ -42,7 +42,7 @@ export function NotificationsPage() {
       case 'system':
         return 'bg-purple-500/20 text-purple-400 border-purple-500/30'
       default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
+        return 'bg-muted/20 text-muted-foreground border-border'
     }
   }
 

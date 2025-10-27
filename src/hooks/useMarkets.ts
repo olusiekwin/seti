@@ -55,8 +55,16 @@ export function useMarkets(params?: {
       setMarkets(transformedMarkets);
 
     } catch (err) {
-      console.error('Error fetching markets:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch markets');
+      // Only log error in development, suppress in production
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error fetching markets:', err);
+      }
+      
+      // Don't set error state for network issues to prevent premature alerts
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (!errorMessage.includes('Failed to fetch') && !errorMessage.includes('500')) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch markets');
+      }
       setMarkets([]);
     } finally {
       setIsLoading(false);
@@ -64,7 +72,12 @@ export function useMarkets(params?: {
   };
 
   useEffect(() => {
-    fetchMarkets();
+    // Add a small delay to prevent premature API calls
+    const timer = setTimeout(() => {
+      fetchMarkets();
+    }, 500);
+    
+    return () => clearTimeout(timer);
   }, [params?.category, params?.status, params?.sort_by, params?.search]);
 
   return {

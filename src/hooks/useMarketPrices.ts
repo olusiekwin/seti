@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useContractMarket, contractUtils } from './useContract';
 
 export interface MarketPrices {
   yesPrice: number;
@@ -19,6 +20,9 @@ export function useMarketPrices(marketId: string): UseMarketPricesResult {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Use smart contract hook for market data
+  const { market: contractMarket, isLoading: contractLoading, error: contractError } = useContractMarket(parseInt(marketId));
+
   const fetchPrices = async () => {
     if (!marketId) return;
 
@@ -26,18 +30,34 @@ export function useMarketPrices(marketId: string): UseMarketPricesResult {
     setError(null);
 
     try {
-      // Simulate price fetching
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock prices
-      const mockPrices: MarketPrices = {
-        yesPrice: 0.5,
-        noPrice: 0.5,
-        totalLiquidity: 1000,
-        totalVolume: 500
-      };
-      
-      setPrices(mockPrices);
+      // Try API first (fast)
+      try {
+        const response = await fetch(`/api/v1/markets/${marketId}/prices`)
+        if (response.ok) {
+          const priceData = await response.json()
+          setPrices(priceData)
+          return;
+        }
+      } catch (apiError) {
+        console.warn('API fetch failed, will try contract:', apiError);
+      }
+
+      // Fallback to smart contract data
+      if (contractMarket) {
+        const { yesPrice, noPrice } = contractUtils.calculatePrices(contractMarket.yesPool, contractMarket.noPool);
+        const totalLiquidity = Number(contractMarket.yesPool + contractMarket.noPool);
+        
+        setPrices({
+          yesPrice,
+          noPrice,
+          totalLiquidity,
+          totalVolume: 0 // Contract doesn't track 24h volume
+        });
+      } else if (contractError) {
+        setError(contractError);
+      } else {
+        setError('Failed to fetch market prices');
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch prices';
       setError(errorMessage);
@@ -48,11 +68,11 @@ export function useMarketPrices(marketId: string): UseMarketPricesResult {
 
   useEffect(() => {
     fetchPrices();
-  }, [marketId]);
+  }, [marketId, contractMarket, contractError]);
 
   return {
     prices,
-    isLoading,
+    isLoading: isLoading || contractLoading,
     error,
     refetch: fetchPrices
   };

@@ -115,3 +115,34 @@ export function formatVolume(volume: number | undefined | null): string {
     return volume.toString();
   }
 }
+
+// Helper function to format USDC amount (6 decimals)
+export function formatUSDC(amount: number | bigint | undefined | null): string {
+  if (amount === undefined || amount === null) {
+    return '0';
+  }
+  
+  // Convert bigint to number if needed
+  let numAmount: number;
+  if (typeof amount === 'bigint') {
+    // USDC has 6 decimals, so divide by 1_000_000
+    numAmount = Number(amount) / 1_000_000;
+  } else {
+    numAmount = amount;
+  }
+  
+  if (isNaN(numAmount)) {
+    return '0';
+  }
+  
+  // Format with appropriate decimals
+  if (numAmount >= 1000000) {
+    return `$${(numAmount / 1000000).toFixed(2)}M`;
+  } else if (numAmount >= 1000) {
+    return `$${(numAmount / 1000).toFixed(2)}K`;
+  } else if (numAmount >= 1) {
+    return `$${numAmount.toFixed(2)}`;
+  } else {
+    return `$${numAmount.toFixed(4)}`;
+  }
+}

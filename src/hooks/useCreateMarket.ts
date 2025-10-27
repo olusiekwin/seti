@@ -36,7 +36,7 @@ export function useCreateMarket(): UseCreateMarketResult {
 
     try {
       // Simulate market creation - replace with actual blockchain interaction
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Remove artificial delay - use real API call
       
       const marketId = `market-${Date.now()}`;
       console.log('Market created:', marketId);

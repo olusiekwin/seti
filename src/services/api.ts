@@ -6,7 +6,7 @@
 
 import { contractService } from './contract'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 interface ApiResponse<T> {
   data?: T;
@@ -14,7 +14,7 @@ interface ApiResponse<T> {
 }
 
 // Generic fetch wrapper with error handling
-async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
+export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
@@ -146,11 +146,29 @@ export const usersApi = {
   // Update user profile
   updateProfile: async (address: string, data: {
     username?: string;
-    email?: string;
     avatar_url?: string;
     bio?: string;
   }) => {
     return apiFetch<{ message: string; user: any }>(`/users/${address}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Get user preferences (new endpoint)
+  getPreferences: async (address: string) => {
+    return apiFetch<{ preferences: any }>(`/users/${address}/preferences`);
+  },
+
+  // Update user preferences (new endpoint)
+  updatePreferences: async (address: string, data: {
+    username?: string;
+    avatar_url?: string;
+    bio?: string;
+    notification_settings?: any;
+    theme_preference?: string;
+  }) => {
+    return apiFetch<{ message: string; preferences: any }>(`/users/${address}/preferences`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -182,6 +200,44 @@ export const usersApi = {
     }
     const query = queryParams.toString();
     return apiFetch<{ leaderboard: any[] }>(`/users/leaderboard${query ? `?${query}` : ''}`);
+  },
+};
+
+// Favorites API
+export const favoritesApi = {
+  // Get user favorites
+  getUserFavorites: async (address: string, page: number = 1, per_page: number = 20) => {
+    return apiFetch<{
+      favorites: any[];
+      pagination: any;
+    }>(`/favorites/${address}?page=${page}&per_page=${per_page}`);
+  },
+
+  // Add favorite
+  addFavorite: async (address: string, marketId: string) => {
+    return apiFetch<{ message: string; favorite: any }>(`/favorites/${address}/${marketId}`, {
+      method: 'POST',
+    });
+  },
+
+  // Remove favorite
+  removeFavorite: async (address: string, marketId: string) => {
+    return apiFetch<{ message: string }>(`/favorites/${address}/${marketId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Check if favorited
+  checkFavorite: async (address: string, marketId: string) => {
+    return apiFetch<{ is_favorite: boolean; favorite_id: number | null }>(`/favorites/${address}/${marketId}`);
+  },
+
+  // Toggle favorite
+  toggleFavorite: async (address: string, marketId: string) => {
+    return apiFetch<{ message: string; is_favorite: boolean; favorite?: any }>(`/favorites/${address}/toggle`, {
+      method: 'POST',
+      body: JSON.stringify({ market_id: marketId }),
+    });
   },
 };
 
@@ -256,11 +312,58 @@ export async function syncTransactionToBackend(txData: {
   }
 }
 
+// Games API
+export const gamesApi = {
+  // Get all games
+  getAll: async (params?: {
+    league?: string;
+    status?: 'scheduled' | 'live' | 'finished';
+    league_id?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined) queryParams.append(key, String(value));
+      });
+    }
+    const query = queryParams.toString();
+    return apiFetch<{ games: any[]; count: number }>(`/games${query ? `?${query}` : ''}`);
+  },
+
+  // Get single game
+  getById: async (fixtureId: number) => {
+    return apiFetch<{ game: any }>(`/games/${fixtureId}`);
+  },
+
+  // Get leagues
+  getLeagues: async () => {
+    return apiFetch<{ leagues: any[] }>('/games/leagues');
+  },
+
+  // Sync games from RapidAPI
+  sync: async () => {
+    return apiFetch<{ message: string; synced: number; total: number }>('/games/sync', {
+      method: 'POST',
+    });
+  },
+};
+
+// Countries API
+export const countriesApi = {
+  // Get all countries
+  getAll: async () => {
+    return apiFetch<{ countries: any[]; count: number }>('/countries');
+  },
+};
+
 export default {
   markets: marketsApi,
   predictions: predictionsApi,
   users: usersApi,
   analytics: analyticsApi,
+  favorites: favoritesApi,
+  games: gamesApi,
+  countries: countriesApi,
   syncTransaction: syncTransactionToBackend,
 };
 

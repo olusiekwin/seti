@@ -1,9 +1,7 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { useConnect } from 'wagmi'
-import { Wallet } from 'lucide-react'
-import { useOnchainKit } from '@coinbase/onchainkit'
+import { Wallet, X } from 'lucide-react'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -13,7 +11,6 @@ interface WalletModalProps {
 export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { connect, connectors, isPending } = useConnect()
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null)
-  const { wallets } = useOnchainKit()
 
   const handleWalletConnect = async (connector: any) => {
     try {
@@ -26,21 +23,18 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     }
   }
 
+  // Cache for wallet icons to prevent duplicate requests
+  const iconCache = useRef<Record<string, string>>({})
+  
   // Get wallet icon with proper fallback logic
   const getWalletIcon = (connectorName: string) => {
-    console.log('Getting icon for wallet:', connectorName)
+    const normalizedName = connectorName.toLowerCase().trim()
     
-    // First try OnchainKit's built-in wallet objects
-    const onchainWallet = wallets?.find(w => 
-      w.name.toLowerCase().includes(connectorName.toLowerCase()) ||
-      connectorName.toLowerCase().includes(w.name.toLowerCase())
-    )
-    
-    if (onchainWallet?.logo) {
-      console.log('Found OnchainKit logo:', onchainWallet.logo)
-      return onchainWallet.logo
+    // Check cache first
+    if (iconCache.current[normalizedName]) {
+      return iconCache.current[normalizedName]
     }
-
+    
     // Fallback to reliable wallet logos for major wallets
     const walletLogos: Record<string, string> = {
       'metamask': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
@@ -57,20 +51,17 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'enkrypt': 'https://enkrypt.com/favicon.ico',
       'injected': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg'
     }
-
-    const normalizedName = connectorName.toLowerCase().trim()
-    console.log('Normalized name:', normalizedName)
     
     // Try exact match first
     if (walletLogos[normalizedName]) {
-      console.log('Found exact match:', walletLogos[normalizedName])
+      iconCache.current[normalizedName] = walletLogos[normalizedName]
       return walletLogos[normalizedName]
     }
     
     // Try partial matches for common variations
     for (const [key, logo] of Object.entries(walletLogos)) {
       if (normalizedName.includes(key) || key.includes(normalizedName)) {
-        console.log('Found partial match:', key, logo)
+        iconCache.current[normalizedName] = logo
         return logo
       }
     }
@@ -79,20 +70,35 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     return null
   }
 
+  if (!isOpen) return null
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg bg-card border-border/50 backdrop-blur-sm">
-        <DialogHeader className="text-center">
-          <DialogTitle className="flex items-center justify-center gap-2 text-xl text-foreground">
+    <div className="fixed inset-0 z-[100] flex">
+      {/* Backdrop */}
+      <div 
+        className="flex-1 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Left Sidebar */}
+      <div className="w-[450px] bg-background border-r shadow-xl overflow-hidden flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center gap-2">
             <Wallet className="w-6 h-6 text-[hsl(208,65%,75%)]" />
-            Connect Your Wallet
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground mt-2">
+            <h2 className="text-xl font-bold text-foreground">Connect Your Wallet</h2>
+          </div>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-5 h-5" />
+          </Button>
+        </div>
+        
+        <p className="text-sm text-muted-foreground px-6 py-2">
             Choose your preferred wallet to connect to Seti
           </p>
-        </DialogHeader>
         
-        <div className="space-y-3 max-h-96 overflow-y-auto scrollbar-hide">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-3">
           {connectors.length === 0 ? (
             <div className="text-center py-8">
               <Wallet className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -132,14 +138,11 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                           onError={(e) => {
                             // Fallback to generic wallet icon if image fails to load
                             e.currentTarget.style.display = 'none'
-                            e.currentTarget.nextElementSibling!.style.display = 'block'
                           }}
                         />
-                      ) : null}
-                      <Wallet 
-                        className="w-5 h-5 text-[hsl(208,65%,75%)]" 
-                        style={{ display: walletIcon ? 'none' : 'block' }}
-                      />
+                      ) : (
+                        <Wallet className="w-5 h-5 text-[hsl(208,65%,75%)]" />
+                      )}
                     </div>
                     <div className="text-left">
                       <div className="font-semibold text-foreground">{connector.name}</div>
@@ -159,12 +162,12 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
               )
             })
           )}
-        </div>
 
-        <div className="text-xs text-muted-foreground text-center pt-4 border-t border-border/50">
+          <div className="text-xs text-muted-foreground text-center pt-4 border-t border-border/50">
           By connecting a wallet, you agree to our Terms of Service and Privacy Policy.
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   )
 }
