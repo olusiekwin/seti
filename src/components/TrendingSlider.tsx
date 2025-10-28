@@ -1,11 +1,7 @@
 import { MarketCard } from "@/components/MarketCard"
 import { MarketCardSkeleton } from "@/components/MarketCardSkeleton"
 import { useMarkets } from "@/hooks/useMarkets"
-import { TrendingUp, Star, Zap, ChevronLeft, ChevronRight } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { useState, useRef } from "react"
+import { TrendingUp, Users, Clock } from "lucide-react"
 
 export function TrendingSlider() {
   const { markets, isLoading } = useMarkets({
@@ -13,94 +9,79 @@ export function TrendingSlider() {
     status: 'active'
   })
 
-  // Get top 4 markets by volume for trending section
-  const trendingMarkets = markets.slice(0, 4)
+  // Get top 3 markets by volume for trending section
+  const trendingMarkets = markets.slice(0, 3)
 
   return (
     <div className="w-full space-y-6">
-      {/* Trending Markets Card */}
-      <Card className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-orange-200 dark:border-orange-800">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <TrendingUp className="w-5 h-5 text-orange-500" />
-            What's Hot Today
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Top trending markets by volume
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {isLoading ? (
-            <div className="space-y-3">
-              {[...Array(4)].map((_, index) => (
-                <MarketCardSkeleton key={index} />
-              ))}
-            </div>
-          ) : trendingMarkets.length > 0 ? (
-            <div className="space-y-3">
-              {trendingMarkets.map((market, index) => (
-                <div key={market.id} className="relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className="bg-orange-500 text-white text-xs font-bold px-2 py-1">
-                      #{index + 1} Trending
-                    </Badge>
-                    <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                      <Zap className="w-3 h-3" />
-                      <span className="text-xs font-medium">Hot</span>
-                    </div>
+      {/* Trending Markets Section */}
+      <div className="bg-background/30 dark:bg-black/20 backdrop-blur-sm border border-border/40 dark:border-white/20 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          <h3 className="text-lg font-semibold text-card-foreground">Trending</h3>
+        </div>
+        
+        {isLoading ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, index) => (
+              <MarketCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : trendingMarkets.length > 0 ? (
+          <div className="space-y-3">
+            {trendingMarkets.map((market, index) => (
+              <div key={market.id} className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                    {index + 1}
                   </div>
-                  <div className="p-3 bg-background/50 rounded-lg border border-border/50 hover:border-orange-300 dark:hover:border-orange-700 transition-colors cursor-pointer">
-                    <h4 className="font-medium text-sm mb-2 line-clamp-2 leading-tight">
-                      {market.question}
-                    </h4>
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span className="capitalize bg-muted/50 px-2 py-1 rounded text-xs">
-                        {market.category}
-                      </span>
-                      <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="font-medium">High Vol</span>
-                      </div>
-                    </div>
-                  </div>
+                  <span className="text-xs text-muted-foreground">Trending #{index + 1}</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <TrendingUp className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                No trending markets yet
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <MarketCard market={market} trending="up" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6">
+            <TrendingUp className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              No trending markets yet
+            </p>
+          </div>
+        )}
+      </div>
 
-      {/* Quick Stats Card */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Market Stats</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      {/* Market Stats */}
+      <div className="bg-background/30 dark:bg-black/20 backdrop-blur-sm border border-border/40 dark:border-white/20 rounded-xl p-4">
+        <h3 className="text-lg font-semibold text-card-foreground mb-4">Stats</h3>
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total Markets</span>
-            <Badge variant="outline">{markets.length}</Badge>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Total Markets</span>
+            </div>
+            <span className="text-sm font-semibold text-card-foreground">{markets.length}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Active Today</span>
-            <Badge variant="outline" className="text-green-600 dark:text-green-400">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Active</span>
+            </div>
+            <span className="text-sm font-semibold text-green-600 dark:text-green-400">
               {markets.filter(m => m.status === 'active').length}
-            </Badge>
+            </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Categories</span>
-            <Badge variant="outline">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Categories</span>
+            </div>
+            <span className="text-sm font-semibold text-card-foreground">
               {new Set(markets.map(m => m.category).filter(Boolean)).size}
-            </Badge>
+            </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
