@@ -132,15 +132,15 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex">
+    <div className="fixed inset-0 z-[100] flex items-center justify-end">
       {/* Backdrop */}
       <div 
-        className="flex-1 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Right Sidebar - Takes up half the page on desktop, full width on mobile */}
-      <div className="w-full sm:w-1/2 max-w-lg min-w-[400px] bg-background border-l shadow-xl overflow-hidden flex flex-col">
+      {/* Right Sidebar - Centered height, half width */}
+      <div className="relative w-full sm:w-1/2 max-w-lg min-w-[400px] h-[80vh] max-h-[600px] bg-background border-l shadow-xl overflow-hidden flex flex-col rounded-l-lg">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-2">
