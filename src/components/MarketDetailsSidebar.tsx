@@ -4,10 +4,6 @@ import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { useToast } from '@/components/ui/use-toast'
-import { usePrediction } from '@/hooks/usePrediction'
-import { useAccount } from 'wagmi'
 import { 
   X, 
   Clock, 
@@ -17,8 +13,7 @@ import {
   BarChart3, 
   Trophy,
   Calendar,
-  DollarSign,
-  Loader2
+  DollarSign
 } from 'lucide-react'
 import { type Market, calculatePrices, formatVolume } from '@/types/contract'
 import { MarketChart } from './MarketChart'
@@ -35,12 +30,8 @@ interface MarketDetailsSidebarProps {
 export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsSidebarProps) {
   // All hooks must be called unconditionally at the top
   const [isAnimating, setIsAnimating] = useState(false)
-  const [amount, setAmount] = useState('')
   const [selectedOutcome, setSelectedOutcome] = useState<'YES' | 'NO' | null>(null)
   const { isFavorite, toggleFavorite } = useFavoritesBackend()
-  const { toast } = useToast()
-  const { isConnected, address } = useAccount()
-  const { placePrediction, isLoading, error, isSuccess, hash } = usePrediction()
   
   // Safe default values to ensure consistent hook calls
   const safeEndTime = market?.end_time || 0
@@ -62,88 +53,6 @@ export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsS
 
   const handleOutcomeSelect = (outcome: 'YES' | 'NO') => {
     setSelectedOutcome(outcome)
-  }
-
-  const handlePlacePrediction = async () => {
-    if (!market || !selectedOutcome || !amount) return
-    
-    if (!isConnected) {
-      toast({
-        title: "🔗 Connect Your Wallet",
-        description: "Connect your wallet to start placing predictions and earning rewards!",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (market.resolved) {
-      toast({
-        title: "🏁 Market Closed",
-        description: "This market has already been resolved. Look for active markets to place your predictions!",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const amountNum = parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      toast({
-        title: "💰 Invalid Amount",
-        description: "Please enter a valid amount greater than 0 USDC to place your prediction.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
-      const success = await placePrediction({
-        marketId: market.id,
-        outcome: selectedOutcome,
-        amount: amountNum,
-      })
-
-      if (success) {
-        const outcomeEmoji = selectedOutcome === 'YES' ? '📈' : '📉'
-        const outcomeText = selectedOutcome === 'YES' ? 'YES' : 'NO'
-        
-        // Personalized message based on market type
-        let personalizedMessage = ''
-        if (isSportsMarket) {
-          personalizedMessage = `Your ${outcomeText} prediction on this sports event is now live! May the odds be in your favor! 🏆`
-        } else if (market.category?.toLowerCase().includes('crypto')) {
-          personalizedMessage = `Your ${outcomeText} crypto prediction is now live! HODL or trade - you decide! 💎`
-        } else if (market.category?.toLowerCase().includes('politics')) {
-          personalizedMessage = `Your ${outcomeText} political prediction is now live! Democracy in action! 🗳️`
-        } else {
-          personalizedMessage = `Your ${outcomeText} prediction is now live! Time to see if you're right! 🎯`
-        }
-        
-        toast({
-          title: `${outcomeEmoji} Prediction Placed!`,
-          description: personalizedMessage,
-        })
-        
-        // Reset form
-        setAmount('')
-        setSelectedOutcome(null)
-        
-        // Close sidebar
-        onClose()
-      } else {
-        toast({
-          title: "❌ Transaction Failed",
-          description: error || "Your prediction couldn't be placed. Check your wallet and try again!",
-          variant: "destructive",
-        })
-      }
-    } catch (err) {
-      console.error('Prediction error:', err)
-      toast({
-        title: "⚠️ Something Went Wrong",
-        description: "An unexpected error occurred. Please check your connection and try again.",
-        variant: "destructive",
-      })
-    }
   }
 
   const isSportsMarket = market ? (
@@ -401,55 +310,22 @@ export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsS
             )}
           </div>
 
-          {/* Footer Actions */}
-          <div className="p-4 border-t border-border/20 space-y-4">
-            {/* Wallet Status */}
-            {!isConnected && (
-              <div className="p-3 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/20 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🔗</span>
-                  <div>
-                    <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                      Connect Your Wallet
-                    </p>
-                    <p className="text-xs text-yellow-600 dark:text-yellow-500">
-                      Start predicting and earning rewards!
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Amount Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Amount (USDC)</label>
-              <Input
-                type="number"
-                placeholder="0.1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full"
-                min="0"
-                step="0.01"
-                disabled={!isConnected}
-              />
-            </div>
-
-            {/* Outcome Selection */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Select Outcome</label>
+          {/* Outcome Selection */}
+          <div className="p-4 border-t border-border/20">
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-foreground">Select Your Prediction</h3>
               <div className="grid grid-cols-2 gap-3">
                 <Button 
-                  className={`h-10 ${selectedOutcome === 'YES' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white`}
-                  disabled={market?.resolved || !isConnected}
+                  className={`h-12 ${selectedOutcome === 'YES' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-500 hover:bg-green-600'} text-white`}
+                  disabled={market?.resolved}
                   onClick={() => handleOutcomeSelect('YES')}
                 >
                   <span className="mr-2">📈</span>
                   YES ({yesPrice}%)
                 </Button>
                 <Button 
-                  className={`h-10 ${selectedOutcome === 'NO' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
-                  disabled={market?.resolved || !isConnected}
+                  className={`h-12 ${selectedOutcome === 'NO' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'} text-white`}
+                  disabled={market?.resolved}
                   onClick={() => handleOutcomeSelect('NO')}
                 >
                   <span className="mr-2">📉</span>
@@ -457,41 +333,6 @@ export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsS
                 </Button>
               </div>
             </div>
-
-            {/* Transaction Note */}
-            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <div className="flex items-start gap-2">
-                <div className="text-blue-600 dark:text-blue-400 text-sm">ℹ️</div>
-                <div className="text-sm text-blue-800 dark:text-blue-200">
-                  <p className="font-medium mb-1">Transaction Note:</p>
-                  <p>MetaMask will show ETH in the transaction modal, but this represents USDC value. The amount shown in ETH equals your USDC bet amount.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Place Prediction Button */}
-            <Button 
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground"
-              disabled={!selectedOutcome || !amount || market?.resolved || isLoading || !isConnected}
-              onClick={handlePlacePrediction}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {selectedOutcome === 'YES' ? 'Placing YES Prediction...' : 'Placing NO Prediction...'}
-                </>
-              ) : !isConnected ? (
-                <>
-                  <span className="mr-2">🔗</span>
-                  Connect Wallet to Predict
-                </>
-              ) : (
-                <>
-                  <span className="mr-2">{selectedOutcome === 'YES' ? '📈' : '📉'}</span>
-                  Place {selectedOutcome || 'Your'} Prediction
-                </>
-              )}
-            </Button>
           </div>
         </div>
       </div>
