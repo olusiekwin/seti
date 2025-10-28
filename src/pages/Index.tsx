@@ -15,6 +15,7 @@ import { Layout } from "@/components/Layout"
 import { MarketDetailsSidebar } from "@/components/MarketDetailsSidebar"
 import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
 import { FailedPredictionsNotification } from "@/components/FailedPredictionsNotification"
+import { TrendingSlider } from "@/components/TrendingSlider"
 const Index = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
@@ -55,27 +56,12 @@ const Index = () => {
         {/* Failed Predictions Notification */}
         <FailedPredictionsNotification />
         {/* Main Markets Section */}
-        <section className="py-4 w-full overflow-x-hidden">
-          <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
-            <Tabs value={activeTab} className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
-              {/* Seti Topic Navigation */}
-              <TabsList className="w-full bg-muted/30 border border-border/50 flex flex-nowrap overflow-x-auto scrollbar-hide h-9 md:h-10 mb-4">
-                <div className="flex flex-nowrap overflow-x-auto scrollbar-hide w-full">
-                  <TabsTrigger value="all" className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    All Topics
-                  </TabsTrigger>
-                  {Array.from(new Set(markets.map(market => market.category).filter(Boolean))).map(category => (
-                    <TabsTrigger 
-                      key={category} 
-                      value={category.toLowerCase()} 
-                      className="text-xs sm:text-sm text-muted-foreground data-[state=active]:text-[hsl(208,65%,85%)] h-full px-4 md:px-6 whitespace-nowrap transition-colors capitalize"
-                    >
-                      {category}
-                    </TabsTrigger>
-                  ))}
-                </div>
-              </TabsList>
+        <section className="py-6 w-full overflow-x-hidden">
+          <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+              {/* Main Content */}
+              <div className="flex-1 min-w-0">
+                <Tabs value={activeTab} className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
 
 
               {/* Controls with Saved Toggle */}
@@ -116,7 +102,7 @@ const Index = () => {
 
               <TabsContent value={activeTab} className="mt-8">
                 {isLoading ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                     {[...Array(8)].map((_, index) => (
                       <MarketCardSkeleton key={index} />
                     ))}
@@ -177,7 +163,7 @@ const Index = () => {
                         </p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
                         {filteredMarkets.map((market, index) => (
                           <ErrorBoundary key={market.id}>
                             <MarketCard
@@ -208,6 +194,13 @@ const Index = () => {
                 </Button>
               </div>
             )}
+              </div>
+
+              {/* Trending Markets Sidebar */}
+              <div className="lg:sticky lg:top-20 lg:h-fit lg:w-80 xl:w-96">
+                <TrendingSlider />
+              </div>
+            </div>
           </div>
         </section>
 
