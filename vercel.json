@@ -2,5 +2,13 @@
   "buildCommand": "npm run build",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "vite",
-  "outputDirectory": "dist"
+  "outputDirectory": "dist",
+  "functions": {
+    "api/og/index.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/frame/index.ts": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }

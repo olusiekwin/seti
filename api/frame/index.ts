@@ -5,6 +5,10 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+export const config = {
+  runtime: 'nodejs',
+};
+
 const FRAME_URL = process.env.VITE_FRAME_URL || "https://seti-mvp.vercel.app";
 
 interface FrameRequest {
