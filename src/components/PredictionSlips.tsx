@@ -30,7 +30,7 @@ export function PredictionSlips() {
       const fetchSlips = async () => {
         try {
           setLoading(true)
-          const response = await fetch(`/api/v1/predictions/${address}`)
+          const response = await fetch(`/api/v1/predictions?user_address=${address}`)
           if (response.ok) {
             const data = await response.json()
             setSlips(data.predictions || [])

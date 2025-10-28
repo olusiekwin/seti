@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { favoritesApi } from '@/services/api';
 import { useWalletConnection } from './useWalletConnection';
 
@@ -7,20 +7,27 @@ export function useFavoritesBackend() {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const loadedAddressRef = useRef<string | null>(null);
 
-  // Load favorites from backend when wallet connects
+  // Load favorites from backend when wallet connects - only once per address
   useEffect(() => {
+    let mounted = true;
+    
     if (isConnected && address) {
-      // Add a small delay to prevent premature API calls
-      const timer = setTimeout(() => {
+      // Prevent repeated fetches by ensuring we only load once per wallet address
+      if (loadedAddressRef.current !== address) {
+        loadedAddressRef.current = address;
         loadFavorites();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
+      }
     } else {
       // Reset to empty when disconnected
       setFavorites(new Set());
+      loadedAddressRef.current = null;
     }
+    
+    return () => {
+      mounted = false;
+    };
   }, [isConnected, address]);
 
   const loadFavorites = async () => {

@@ -9,12 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ArrowRight, Plus, TrendingUp } from "lucide-react"
 import { useMarkets } from "@/hooks/useMarkets"
 import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
-import { useFavorites } from "@/hooks/useFavorites"
+import { useFavoritesBackend } from "@/hooks/useFavoritesBackend"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { Layout } from "@/components/Layout"
 import { MarketDetailsSidebar } from "@/components/MarketDetailsSidebar"
 import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
-
 const Index = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
@@ -29,7 +28,7 @@ const Index = () => {
     status: 'active'
   })
   
-  const { favorites, isFavorite } = useFavorites()
+  const { favorites, isFavorite } = useFavoritesBackend()
   
   const {
     isOpen,
@@ -43,7 +42,6 @@ const Index = () => {
   } = usePredictionModalContext()
 
   const { isOpen: isSidebarOpen, selectedMarket: sidebarMarket, closeSidebar } = useMarketSidebar()
-
 
   // Filter markets based on saved state
   const filteredMarkets = showSaved 

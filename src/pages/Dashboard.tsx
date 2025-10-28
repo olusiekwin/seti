@@ -209,6 +209,70 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Win/Loss Chart */}
+        {stats.wins > 0 || stats.losses > 0 ? (
+          <Card className="bg-card/80 backdrop-blur-sm border-border/50">
+            <CardHeader>
+              <CardTitle className="text-xl">Win/Loss History</CardTitle>
+              <CardDescription>Your prediction performance over time</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* Win/Loss Comparison Bar */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-green-600">Wins</span>
+                    <span className="text-sm font-medium">{stats.wins}</span>
+                  </div>
+                  <div className="h-8 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-green-500 to-green-600 flex items-center justify-end pr-2"
+                      style={{
+                        width: `${stats.wins + stats.losses > 0 ? (stats.wins / (stats.wins + stats.losses)) * 100 : 0}%`,
+                      }}
+                    >
+                      <span className="text-xs font-semibold text-white">
+                        {stats.wins + stats.losses > 0 ? ((stats.wins / (stats.wins + stats.losses)) * 100).toFixed(0) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-red-600">Losses</span>
+                    <span className="text-sm font-medium">{stats.losses}</span>
+                  </div>
+                  <div className="h-8 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-red-500 to-red-600 flex items-center justify-end pr-2"
+                      style={{
+                        width: `${stats.wins + stats.losses > 0 ? (stats.losses / (stats.wins + stats.losses)) * 100 : 0}%`,
+                      }}
+                    >
+                      <span className="text-xs font-semibold text-white">
+                        {stats.wins + stats.losses > 0 ? ((stats.losses / (stats.wins + stats.losses)) * 100).toFixed(0) : 0}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Summary Stats */}
+                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{stats.winRate.toFixed(0)}%</div>
+                    <div className="text-sm text-muted-foreground">Win Rate</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-foreground">{stats.wins + stats.losses}</div>
+                    <div className="text-sm text-muted-foreground">Total Closed</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : null}
+
         {/* Positions */}
         <Tabs defaultValue="active" className="space-y-6">
           <TabsList className="bg-muted/30 border border-border/50">

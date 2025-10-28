@@ -171,7 +171,6 @@ export default function Activity() {
         <Tabs defaultValue="all" className="space-y-6">
           <TabsList className="bg-muted/50 border border-border/50 w-full sm:w-auto">
             <TabsTrigger value="all">All Activity</TabsTrigger>
-            <TabsTrigger value="trades">Trades</TabsTrigger>
             <TabsTrigger value="slips" className="flex items-center gap-2">
               <Receipt className="w-4 h-4" />
               Prediction Slips
@@ -193,26 +192,6 @@ export default function Activity() {
                   </div>
                 ) : (
                   <div className="space-y-4">{allPredictions.map(renderPredictionItem)}</div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="trades" className="space-y-6">
-            <Card className="bg-card/80 backdrop-blur-sm border-border/50">
-              <CardHeader>
-                <CardTitle className="text-xl">Trade History</CardTitle>
-                <CardDescription>All your market trades</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {trades.length === 0 ? (
-                  <div className="text-center py-16">
-                    <DollarSign className="w-20 h-20 mx-auto mb-6 text-muted-foreground/50" />
-                    <h3 className="text-2xl font-semibold mb-3 text-foreground">No trades yet</h3>
-                    <p className="text-muted-foreground text-lg">Start trading to build your history</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">{trades.map(renderPredictionItem)}</div>
                 )}
               </CardContent>
             </Card>

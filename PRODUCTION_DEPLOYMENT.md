@@ -83,3 +83,4 @@ The application now logs production errors for debugging while suppressing only 
 
 Your Seti prediction market is ready for production! 🎉
 
+

@@ -134,6 +134,66 @@ export const predictionsApi = {
   getRecent: async (limit: number = 50) => {
     return apiFetch<{ predictions: any[] }>(`/predictions/recent?limit=${limit}`);
   },
+
+  // Live Predictions API methods
+  // Get live predictions
+  getLive: (params?: { limit?: number; offset?: number }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.limit) searchParams.append('limit', params.limit.toString())
+    if (params?.offset) searchParams.append('offset', params.offset.toString())
+    
+    return apiFetch<{
+      success: boolean
+      predictions: any[]
+      last_updated: string
+      total_count: number
+    }>(`/predictions/live?${searchParams.toString()}`)
+  },
+  
+  // Get active predictions
+  getActive: (params?: { 
+    user_address?: string
+    market_id?: number
+    limit?: number
+    offset?: number
+  }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.user_address) searchParams.append('user_address', params.user_address)
+    if (params?.market_id) searchParams.append('market_id', params.market_id.toString())
+    if (params?.limit) searchParams.append('limit', params.limit.toString())
+    if (params?.offset) searchParams.append('offset', params.offset.toString())
+    
+    return apiFetch<{
+      success: boolean
+      predictions: any[]
+      total: number
+      limit: number
+      offset: number
+    }>(`/predictions/active?${searchParams.toString()}`)
+  },
+  
+  // Get prediction status
+  getStatus: (predictionId: number) =>
+    apiFetch<{
+      success: boolean
+      prediction_id: number
+      status: any
+    }>(`/predictions/${predictionId}/status`),
+  
+  // Get user predictions status
+  getUserStatus: (userAddress: string) =>
+    apiFetch<{
+      success: boolean
+      user_address: string
+      predictions: any[]
+    }>(`/users/${userAddress}/predictions/status`),
+  
+  // Get market analytics
+  getMarketAnalytics: (marketId: number) =>
+    apiFetch<{
+      success: boolean
+      analytics: any
+    }>(`/markets/${marketId}/analytics`),
 };
 
 // Users API
