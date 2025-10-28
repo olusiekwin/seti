@@ -59,7 +59,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'Coinbase Wallet': '/coinbase-logo.svg',
       'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
-      'Enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
+      'Enkrypt': '/enkrypt-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
@@ -68,7 +68,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'brave': '/brave-logo.svg',
       'brave wallet': '/brave-logo.svg',
       'rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
-      'enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
+      'enkrypt': '/enkrypt-logo.svg',
       
       // Additional wallets
       'walletconnect': 'https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png',
@@ -91,14 +91,14 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'Coinbase Wallet': '/coinbase-logo.svg',
       'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
-      'Enkrypt': 'https://enkrypt.com/favicon.ico',
+      'Enkrypt': '/enkrypt-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
       'coinbase': '/coinbase-logo.svg',
       'brave': '/brave-logo.svg',
       'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
-      'enkrypt': 'https://enkrypt.com/favicon.ico',
+      'enkrypt': '/enkrypt-logo.svg',
       'trust': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
       'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4'
     }
