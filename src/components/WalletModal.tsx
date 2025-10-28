@@ -141,7 +141,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-3">
             <img src="/seti_.svg" alt="Seti" className="w-8 h-8" />
-            <Wallet className="w-6 h-6 text-[hsl(208,65%,75%)]" />
             <h2 className="text-xl font-bold text-foreground">Connect Your Wallet</h2>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -178,8 +177,14 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 return nameIndex === index
               })
               .filter((connector) => {
-                // Keep all connectors
-                return true
+                // Exclude injected wallets and keep only specific wallet providers
+                const name = connector.name.toLowerCase()
+                return !name.includes('injected') && 
+                       (name.includes('metamask') || 
+                        name.includes('coinbase') || 
+                        name.includes('brave') || 
+                        name.includes('rainbow') || 
+                        name.includes('enkrypt'))
               })
               .sort((a, b) => {
                 // Sort MetaMask first, then alphabetically
