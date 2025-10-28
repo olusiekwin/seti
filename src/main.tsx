@@ -30,6 +30,7 @@ console.error = (...args) => {
     message.includes('MetaMask') ||
     message.includes('WalletConnect') ||
     message.includes('Error in invocation of runtime.sendMessage') ||
+    message.includes('Please use @farcaster/miniapp-sdk instead') ||
     message.includes('must specify an Extension ID') ||
     message.includes('runtime.sendMessage() called from a webpage') ||
     message.includes('TypeError: Error in invocation of runtime.sendMessage') ||

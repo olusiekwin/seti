@@ -174,7 +174,7 @@ export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsS
       />
       
       {/* Sidebar */}
-      <div className={`fixed right-0 top-0 h-full w-full max-w-md bg-background/80 backdrop-blur-md border-l border-border/20 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${
+      <div className={`fixed right-0 top-0 h-full w-full max-w-md bg-background/80 backdrop-blur-md border-l border-border/20 shadow-2xl z-40 transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         <div className="flex flex-col h-full">
