@@ -38,5 +38,9 @@ export default defineConfig({
     rollupOptions: {
       external: [],
     },
+    // Ensure environment variables are available at build time
+    define: {
+      'import.meta.env.VITE_API_URL': JSON.stringify(process.env.VITE_API_URL || '/api/v1'),
+    },
   },
 });
