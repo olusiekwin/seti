@@ -201,12 +201,12 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   disabled={isPending || isConnecting}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-muted/30 border border-border/50 flex items-center justify-center overflow-hidden">
+                    <div className="w-12 h-12 bg-muted/30 border border-border/50 flex items-center justify-center rounded-lg">
                       {walletIcon ? (
                         <img 
                           src={walletIcon} 
                           alt={connector.name}
-                          className="w-6 h-6 object-contain"
+                          className="w-8 h-8 object-contain"
                           onError={(e) => {
                             // Fallback to generic wallet icon if image fails to load
                             e.currentTarget.style.display = 'none'
@@ -214,7 +214,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                           }}
                         />
                       ) : null}
-                      <Wallet className={`w-5 h-5 text-[hsl(208,65%,75%)] ${walletIcon ? 'hidden' : ''}`} />
+                      <Wallet className={`w-6 h-6 text-[hsl(208,65%,75%)] ${walletIcon ? 'hidden' : ''}`} />
                     </div>
                     <div className="text-left">
                       <div className="font-semibold text-foreground">{connector.name}</div>
