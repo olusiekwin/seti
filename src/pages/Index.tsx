@@ -15,7 +15,6 @@ import { Layout } from "@/components/Layout"
 import { MarketDetailsSidebar } from "@/components/MarketDetailsSidebar"
 import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
 import { FailedPredictionsNotification } from "@/components/FailedPredictionsNotification"
-import { TrendingSlider } from "@/components/TrendingSlider"
 const Index = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
@@ -58,14 +57,7 @@ const Index = () => {
         {/* Main Markets Section */}
         <section className="py-6 w-full overflow-x-hidden">
           <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-            <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-              {/* Trending Sidebar */}
-              <div className="lg:sticky lg:top-20 lg:h-fit lg:w-80 xl:w-96 order-2 lg:order-1">
-                <TrendingSlider />
-              </div>
-
-              {/* Main Content */}
-              <div className="flex-1 min-w-0 order-1 lg:order-2">
+            <div className="w-full">
                 <Tabs value={activeTab} className="w-full mb-4 sm:mb-6 md:mb-8" onValueChange={setActiveTab}>
 
 
@@ -199,7 +191,6 @@ const Index = () => {
                 </Button>
               </div>
             )}
-              </div>
             </div>
           </div>
         </section>
