@@ -157,15 +157,16 @@ export function Header() {
               </Button>
             ) : (
               <div className="flex items-center gap-3">
-                {/* Balance Display */}
-                <div className="flex flex-col items-end">
-                  <div className="text-sm font-medium text-foreground">
+                {/* Clean Balance Display */}
+                <div className="text-right">
+                  <div className="text-lg font-bold text-foreground">
                     {getBalanceDisplay()}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {address?.slice(0, 6)}...{address?.slice(-4)}
                   </div>
                 </div>
+                
                 <Button
                   variant="outline"
                   size="sm"
@@ -207,15 +208,6 @@ export function Header() {
                     >
                       <Activity className="w-4 h-4" />
                       Activity
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link 
-                      to="/drafts" 
-                      className={`flex items-center gap-2 w-full ${location.pathname === '/drafts' ? 'bg-[hsl(208,65%,75%)] text-background' : ''}`}
-                    >
-                      <FileText className="w-4 h-4" />
-                      Drafts
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -325,14 +317,14 @@ export function Header() {
                     </Button>
                   )}
                   
-                  <div className="text-sm text-muted-foreground text-center">
-                    {address && `${address.slice(0, 6)}...${address.slice(-4)}`}
-                    <div className="text-xs mt-1">
+                  <div className="text-center py-2">
+                    <div className="text-lg font-bold text-foreground mb-1">
                       {getBalanceDisplay()}
                     </div>
-                    <div className="mt-2">
-                      <WalletStatusIndicator />
+                    <div className="text-sm text-muted-foreground mb-2">
+                      {address && `${address.slice(0, 6)}...${address.slice(-4)}`}
                     </div>
+                    <WalletStatusIndicator />
                   </div>
                 </div>
               )}

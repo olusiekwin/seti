@@ -6,7 +6,7 @@ import { SharedPredictionModal, PredictionReceiptModal } from "@/components/Shar
 import { ErrorBoundary } from "@/components/ErrorBoundary"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowRight, Plus, TrendingUp } from "lucide-react"
+import { ArrowRight, Plus, TrendingUp, BookmarkCheck } from "lucide-react"
 import { useMarkets } from "@/hooks/useMarkets"
 import { usePredictionModalContext } from "@/contexts/PredictionModalContext"
 import { useFavoritesBackend } from "@/hooks/useFavoritesBackend"
@@ -14,6 +14,7 @@ import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { Layout } from "@/components/Layout"
 import { MarketDetailsSidebar } from "@/components/MarketDetailsSidebar"
 import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
+import { FailedPredictionsNotification } from "@/components/FailedPredictionsNotification"
 const Index = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [sortBy, setSortBy] = useState("created_timestamp");
@@ -51,6 +52,8 @@ const Index = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-background overflow-x-hidden">
+        {/* Failed Predictions Notification */}
+        <FailedPredictionsNotification />
         {/* Main Markets Section */}
         <section className="py-4 w-full overflow-x-hidden">
           <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
@@ -91,14 +94,15 @@ const Index = () => {
                     </select>
                   </div>
                   <button 
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`p-2 rounded-lg transition-all duration-200 hover:scale-105 ${
                       showSaved 
-                        ? 'bg-blue-500 text-white' 
-                        : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
+                        ? 'bg-blue-500 text-white shadow-lg' 
+                        : 'bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                     }`}
                     onClick={() => setShowSaved(!showSaved)}
+                    title={showSaved ? 'Show All Markets' : 'Show Saved Markets'}
                   >
-                    {showSaved ? 'Show All' : 'Show Saved'}
+                    <BookmarkCheck className={`w-4 h-4 ${showSaved ? 'text-white' : 'text-muted-foreground'}`} />
                   </button>
                 </div>
                 <div className="text-sm text-muted-foreground">

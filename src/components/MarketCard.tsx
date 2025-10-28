@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { MarketBadge } from "./MarketBadge"
-import { TrendingUp, TrendingDown, Users, Clock, ImageIcon, BarChart3, Gift, Bookmark, BookmarkCheck } from "lucide-react"
+import { TrendingUp, TrendingDown, Users, Clock, ImageIcon, Gift, Bookmark, BookmarkCheck } from "lucide-react"
 import { type Market, calculatePrices, formatTimeRemaining, formatVolume } from "@/types/contract"
 import { useMarketSidebar } from "@/contexts/MarketSidebarContext"
 import { useCountdown } from "@/hooks/useCountdown"
@@ -77,25 +77,10 @@ export function MarketCard({ market, trending }: MarketCardProps) {
       isAnimating ? 'animate-prediction-pulse' : ''
     }`}>
       {/* Market Header */}
-      <div className="flex items-start gap-2 sm:gap-3 mb-3 sm:mb-4">
-        {/* Market Icon */}
-        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted/20">
-          {market.image_url ? (
-            <img
-              src={market.image_url}
-              alt={market.question}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/40 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
-          )}
-        </div>
-
+      <div className="mb-3 sm:mb-4">
         {/* Market Question */}
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm sm:text-base font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 leading-tight line-clamp-2 mb-1 sm:mb-2">
+        <div className="min-w-0">
+          <h3 className="text-sm sm:text-base font-semibold text-card-foreground group-hover:text-primary transition-colors duration-200 leading-tight line-clamp-2 mb-2 sm:mb-3">
             {market.question}
           </h3>
           
@@ -117,8 +102,8 @@ export function MarketCard({ market, trending }: MarketCardProps) {
             
             {/* LIVE tag for sports markets */}
             {isSportsMarket && !market.resolved && (
-              <div className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-2 py-1 rounded-md border border-red-200">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs px-1.5 py-0.5 rounded border border-red-200">
+                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></div>
                 LIVE
               </div>
             )}
@@ -129,20 +114,20 @@ export function MarketCard({ market, trending }: MarketCardProps) {
       {/* Prediction Buttons */}
       <div className="flex gap-2 mb-3">
         <Button
-          className="flex-1 h-8 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs btn-prediction"
+          className="flex-1 h-10 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100 btn-prediction border-2 border-green-400/30"
           disabled={market.resolved}
           onClick={() => handlePredictionClick("YES")}
         >
-          <span className="text-sm">Yes</span>
-          <span className="text-xs font-bold bg-background/20 px-1.5 py-0.5 rounded">{yesPrice}%</span>
+          <span className="text-base font-bold">YES</span>
+          <span className="text-xs font-bold bg-white/25 px-2 py-1 rounded-full">{yesPrice}%</span>
         </Button>
         <Button
-          className="flex-1 h-8 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 text-xs btn-prediction"
+          className="flex-1 h-10 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm shadow-lg hover:shadow-xl hover:scale-105 disabled:hover:scale-100 btn-prediction border-2 border-red-400/30"
           disabled={market.resolved}
           onClick={() => handlePredictionClick("NO")}
         >
-          <span className="text-sm">No</span>
-          <span className="text-xs font-bold bg-background/20 px-1.5 py-0.5 rounded">{noPrice}%</span>
+          <span className="text-base font-bold">NO</span>
+          <span className="text-xs font-bold bg-white/25 px-2 py-1 rounded-full">{noPrice}%</span>
         </Button>
       </div>
 

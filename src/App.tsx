@@ -14,6 +14,7 @@ import Profile from "./pages/Profile"
 import Notifications from "./pages/Notifications"
 import PredictionDetails from "./pages/PredictionDetails"
 import Drafts from "./pages/Drafts"
+import FailedPredictions from "./pages/FailedPredictions"
 import { SimpleChainlinkApp } from "./components/SimpleChainlinkApp"
 
 const App = () => {
@@ -38,6 +39,7 @@ const App = () => {
             <Route path="/profile" element={<Profile />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/drafts" element={<Drafts />} />
+            <Route path="/failed-predictions" element={<FailedPredictions />} />
             <Route path="/prediction/:id" element={<PredictionDetails />} />
             <Route path="/chainlink" element={<SimpleChainlinkApp />} />
             <Route path="*" element={<NotFound />} />

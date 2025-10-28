@@ -65,7 +65,7 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
     try {
       // Use smart contract to place bet
       const result = await placeBet(
-        parseInt(market.id),
+        market.id, // Pass as string, let useContract handle conversion
         outcome === "YES" ? 1 : 0,
         amount
       )
@@ -132,7 +132,9 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
         setLocalError("Failed to submit transaction. Please try again.")
       }
     } catch (err) {
-      setLocalError("Failed to place prediction. Please try again.")
+      console.error('Prediction submission error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to place prediction. Please try again.';
+      setLocalError(errorMessage);
     }
   }
 

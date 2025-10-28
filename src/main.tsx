@@ -163,8 +163,8 @@ try {
     chains: [baseSepolia],
     connectors: [
       injected({
-        target: 'metaMask',
-        shimDisconnect: true, // Prevent disconnection issues
+        // Remove specific target to allow all injected wallets
+        shimDisconnect: true,
       }),
       coinbaseWallet({
         appName: 'Seti',

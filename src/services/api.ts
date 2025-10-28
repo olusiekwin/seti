@@ -2,6 +2,7 @@
  * API Service for connecting to Seti Backend
  * Web2.5 Architecture: Fast backend queries + Blockchain settlement
  * Uses single contract service - no duplication
+ * SECURE: Enhanced with comprehensive security measures
  */
 
 import { contractService } from './contract'
@@ -13,9 +14,49 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Generic fetch wrapper with error handling
+// Simple rate limiting implementation
+class RateLimiter {
+  private requests: Map<string, number[]> = new Map();
+  private maxRequests: number;
+  private windowMs: number;
+
+  constructor(maxRequests: number = 100, windowMs: number = 60000) {
+    this.maxRequests = maxRequests;
+    this.windowMs = windowMs;
+  }
+
+  isAllowed(key: string): boolean {
+    const now = Date.now();
+    const requests = this.requests.get(key) || [];
+    const validRequests = requests.filter(time => now - time < this.windowMs);
+    
+    if (validRequests.length >= this.maxRequests) {
+      return false;
+    }
+    
+    validRequests.push(now);
+    this.requests.set(key, validRequests);
+    return true;
+  }
+}
+
+// Initialize rate limiting
+const rateLimiter = new RateLimiter(100, 60000); // 100 requests per minute
+
+// Generic fetch wrapper with enhanced security
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   try {
+    // Rate limiting check
+    const clientId = 'api_client'; // In production, use user ID or session ID
+    if (!rateLimiter.isAllowed(clientId)) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    }
+
+    // Validate endpoint to prevent SSRF
+    if (!isValidEndpoint(endpoint)) {
+      throw new Error('Invalid endpoint');
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
@@ -34,6 +75,20 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
     console.error(`API Error [${endpoint}]:`, error);
     throw error;
   }
+}
+
+// Validate endpoint to prevent SSRF attacks
+function isValidEndpoint(endpoint: string): boolean {
+  // Only allow relative paths and specific patterns
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return false; // Block absolute URLs
+  }
+  
+  if (endpoint.includes('..') || endpoint.includes('//')) {
+    return false; // Block path traversal
+  }
+  
+  return true;
 }
 
 // Markets API

@@ -46,7 +46,7 @@ export function useContract() {
 
   // Place a bet on a market using USDC
   const placeBet = useCallback(async (
-    marketId: number,
+    marketId: string | number,
     outcome: 0 | 1, // 0 = NO, 1 = YES
     amount: string // USDC amount as string
   ) => {
@@ -59,26 +59,56 @@ export function useContract() {
       setIsLoading(true)
       setErrorMessage(null)
 
-      // Validate amount (0.1 to 10,000 USDC for safety)
-      const amountNum = parseFloat(amount)
-      if (isNaN(amountNum) || amountNum < 0.1 || amountNum > 10000) {
-        setErrorMessage('Invalid amount. Please bet between 0.1 and 10,000 USDC')
-        return null
+      // Convert market ID to number
+      let numericMarketId: number;
+      try {
+        if (typeof marketId === 'string') {
+          if (marketId.startsWith('0x')) {
+            // Convert hex to number
+            const hexValue = BigInt(marketId);
+            numericMarketId = Number(hexValue % BigInt(Number.MAX_SAFE_INTEGER));
+          } else if (marketId.includes('_')) {
+            // Extract numeric part from market_123456_0x... format
+            const numericMatch = marketId.match(/\d+/);
+            if (numericMatch) {
+              numericMarketId = parseInt(numericMatch[0]);
+            } else {
+              throw new Error('No numeric part found in market ID');
+            }
+          } else {
+            numericMarketId = parseInt(marketId);
+            if (isNaN(numericMarketId)) {
+              throw new Error('Invalid numeric market ID');
+            }
+          }
+        } else {
+          numericMarketId = marketId;
+        }
+      } catch (idError) {
+        console.error('Error converting market ID:', idError);
+        setErrorMessage('Invalid market ID format');
+        return null;
       }
 
-      // Parse USDC amount with 6 decimals
-      const usdcAmount = parseUnits(amount, USDC_DECIMALS)
+      // Validate amount (0.01 to 10,000 USDC for safety)
+      const amountNum = parseFloat(amount)
+      if (isNaN(amountNum) || amountNum < 0.01 || amountNum > 10000) {
+        setErrorMessage('Invalid amount. Please bet between 0.01 and 10,000 USDC')
+        return null
+      }
 
       // For now, we'll use ETH since the contract expects payable
       // TODO: Update contract to handle USDC properly
       // Convert USDC amount to ETH (1 USDC = 1 ETH for now)
       const ethAmount = parseEther(amount)
 
+      console.log('Placing bet with:', { numericMarketId, outcome, amount, ethAmount: ethAmount.toString() });
+
       const hash = await writeContract({
         address: CONTRACT_CONFIG.address as `0x${string}`,
         abi: CONTRACT_CONFIG.abi,
         functionName: 'placeBet',
-        args: [BigInt(marketId), outcome],
+        args: [BigInt(numericMarketId), outcome],
         value: ethAmount, // Send ETH for now
         // Let MetaMask estimate gas and gas price for optimal fees
         // This will use the lowest possible fees based on current network conditions
@@ -86,6 +116,7 @@ export function useContract() {
 
       return hash || 'transaction-submitted'
     } catch (err: any) {
+      console.error('Place bet error:', err);
       setErrorMessage(err.message || 'Failed to place bet')
       return null
     } finally {
