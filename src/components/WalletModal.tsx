@@ -58,7 +58,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'MetaMask': '/metamask-logo.svg',
       'Coinbase Wallet': '/coinbase-logo.svg',
       'Brave Wallet': '/brave-logo.svg',
-      'Rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
+      'Rainbow': '/rainbow-logo.svg',
       'Enkrypt': '/enkrypt-logo.svg',
       
       // Also support lowercase variations
@@ -67,7 +67,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'coinbase wallet': '/coinbase-logo.svg',
       'brave': '/brave-logo.svg',
       'brave wallet': '/brave-logo.svg',
-      'rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
+      'rainbow': '/rainbow-logo.svg',
       'enkrypt': '/enkrypt-logo.svg',
       
       // Additional wallets
@@ -90,14 +90,14 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'MetaMask': '/metamask-logo.svg',
       'Coinbase Wallet': '/coinbase-logo.svg',
       'Brave Wallet': '/brave-logo.svg',
-      'Rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
+      'Rainbow': '/rainbow-logo.svg',
       'Enkrypt': '/enkrypt-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
       'coinbase': '/coinbase-logo.svg',
       'brave': '/brave-logo.svg',
-      'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
+      'rainbow': '/rainbow-logo.svg',
       'enkrypt': '/enkrypt-logo.svg',
       'trust': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
       'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4'
