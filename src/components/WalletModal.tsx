@@ -56,18 +56,18 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     const walletLogos: Record<string, string> = {
       // Match exact connector names from console output
       'MetaMask': '/metamask-logo.svg',
-      'Coinbase Wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
-      'Brave Wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
+      'Coinbase Wallet': '/coinbase-logo.svg',
+      'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'Enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'Injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
+      'Injected': '/metamask-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
-      'coinbase': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
-      'coinbase wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
-      'brave': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
-      'brave wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
+      'coinbase': '/coinbase-logo.svg',
+      'coinbase wallet': '/coinbase-logo.svg',
+      'brave': '/brave-logo.svg',
+      'brave wallet': '/brave-logo.svg',
       'rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
       'injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
@@ -90,16 +90,16 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     const fallbackLogos: Record<string, string> = {
       // Match exact connector names
       'MetaMask': '/metamask-logo.svg',
-      'Coinbase Wallet': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
-      'Brave Wallet': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'Coinbase Wallet': '/coinbase-logo.svg',
+      'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
       'Enkrypt': 'https://enkrypt.com/favicon.ico',
       'Injected': '/metamask-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
-      'coinbase': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
-      'brave': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'coinbase': '/coinbase-logo.svg',
+      'brave': '/brave-logo.svg',
       'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
       'enkrypt': 'https://enkrypt.com/favicon.ico',
       'injected': '/metamask-logo.svg',
