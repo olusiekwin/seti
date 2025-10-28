@@ -60,7 +60,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'Enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'Injected': '/metamask-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
@@ -70,7 +69,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'brave wallet': '/brave-logo.svg',
       'rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
       
       // Additional wallets
       'walletconnect': 'https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png',
@@ -94,7 +92,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'Brave Wallet': '/brave-logo.svg',
       'Rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
       'Enkrypt': 'https://enkrypt.com/favicon.ico',
-      'Injected': '/metamask-logo.svg',
       
       // Also support lowercase variations
       'metamask': '/metamask-logo.svg',
@@ -102,7 +99,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       'brave': '/brave-logo.svg',
       'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
       'enkrypt': 'https://enkrypt.com/favicon.ico',
-      'injected': '/metamask-logo.svg',
       'trust': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
       'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4'
     }
@@ -132,15 +128,15 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-end">
+    <div className="fixed inset-0 z-[100] flex justify-end">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
       
-      {/* Right Sidebar - Centered height, half width */}
-      <div className="relative w-full sm:w-1/2 max-w-lg min-w-[400px] h-[80vh] max-h-[600px] bg-background border-l shadow-xl overflow-hidden flex flex-col rounded-l-lg">
+      {/* Right Sidebar - Touches top, not bottom, half width */}
+      <div className="relative w-full sm:w-1/2 max-w-lg min-w-[400px] h-[90vh] bg-background border-l shadow-xl overflow-hidden flex flex-col rounded-l-lg">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-2">
