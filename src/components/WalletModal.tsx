@@ -139,7 +139,8 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       <div className="relative w-full sm:w-1/2 max-w-lg min-w-[400px] h-[90vh] bg-background border-l shadow-xl overflow-hidden flex flex-col rounded-l-lg">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <img src="/seti_.svg" alt="Seti" className="w-8 h-8" />
             <Wallet className="w-6 h-6 text-[hsl(208,65%,75%)]" />
             <h2 className="text-xl font-bold text-foreground">Connect Your Wallet</h2>
           </div>
@@ -201,7 +202,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                   disabled={isPending || isConnecting}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-muted/30 border border-border/50 flex items-center justify-center rounded-lg">
+                    <div className="w-12 h-12 flex items-center justify-center">
                       {walletIcon ? (
                         <img 
                           src={walletIcon} 
