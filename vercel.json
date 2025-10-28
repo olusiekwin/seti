@@ -1,36 +1,6 @@
 {
   "buildCommand": "npm run build",
-  "outputDirectory": "dist",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "vite",
-  "rewrites": [
-    {
-      "source": "/api/frame",
-      "destination": "/api/frame/index"
-    },
-    {
-      "source": "/api/og",
-      "destination": "/api/og/index"
-    }
-  ],
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, OPTIONS"
-        }
-      ]
-    }
-  ]
+  "outputDirectory": "dist"
 }
-

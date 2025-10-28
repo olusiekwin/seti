@@ -12,8 +12,8 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { connect, connectors, isPending } = useConnect()
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null)
 
-  // Debug: Log available connectors
-  console.log('Available connectors:', connectors.map(c => ({ name: c.name, uid: c.uid })))
+  // Debug: Log available connectors (remove in production)
+  // console.log('Available connectors:', connectors.map(c => ({ name: c.name, uid: c.uid })))
 
   const handleWalletConnect = async (connector: any) => {
     try {
@@ -42,34 +42,31 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const getWalletIcon = (connectorName: string) => {
     const normalizedName = connectorName.toLowerCase().trim()
     
-    console.log('Getting icon for:', { connectorName, normalizedName })
-    
     // Check cache first
     if (iconCache.current[normalizedName]) {
-      console.log('Found cached icon for:', normalizedName)
       return iconCache.current[normalizedName]
     }
     
-    // Comprehensive wallet logos using reliable sources
-    // Primary sources: spothq/cryptocurrency-icons, WalletConnect assets, official repos
+    // Comprehensive wallet logos using reliable external sources
+    // Note: cryptocurrency-icons package is for crypto tokens, not wallet apps
     const walletLogos: Record<string, string> = {
       // Match exact connector names from console output
-      'MetaMask': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/metamask.svg',
+      'MetaMask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
       'Coinbase Wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
       'Brave Wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
       'Rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'Enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'Injected': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/metamask.svg',
+      'Injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
       
       // Also support lowercase variations
-      'metamask': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/metamask.svg',
+      'metamask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
       'coinbase': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
       'coinbase wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/coinbase.svg',
       'brave': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
       'brave wallet': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/brave.svg',
       'rainbow': 'https://raw.githubusercontent.com/rainbow-me/rainbow/master/src/images/rainbow-icon.png',
       'enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'injected': 'https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/svg/color/metamask.svg',
+      'injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
       
       // Additional wallets
       'walletconnect': 'https://raw.githubusercontent.com/WalletConnect/walletconnect-assets/master/Icon/Gradient/Icon.png',
@@ -88,33 +85,31 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
     // Fallback URLs using alternative reliable sources
     const fallbackLogos: Record<string, string> = {
       // Match exact connector names
-      'MetaMask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
-      'Coinbase Wallet': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/coinbase.png',
-      'Brave Wallet': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/brave.png',
-      'Rainbow': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/rainbow.png',
-      'Enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'Injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
+      'MetaMask': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
+      'Coinbase Wallet': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
+      'Brave Wallet': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'Rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
+      'Enkrypt': 'https://enkrypt.com/favicon.ico',
+      'Injected': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
       
       // Also support lowercase variations
-      'metamask': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
-      'coinbase': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/coinbase.png',
-      'brave': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/brave.png',
-      'rainbow': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/rainbow.png',
-      'enkrypt': 'https://raw.githubusercontent.com/enkryptcom/enkrypt/master/src/assets/icon.svg',
-      'injected': 'https://raw.githubusercontent.com/MetaMask/brand-resources/master/SVG/metamask-fox.svg',
-      'trust': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/trust.png',
-      'walletconnect': 'https://raw.githubusercontent.com/ErikThiart/cryptocurrency-icons/master/32/color/walletconnect.png'
+      'metamask': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
+      'coinbase': 'https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/3f97172ff64d2367d4a8b3f8d3b3b3b3/coinbase-wallet-logo.svg',
+      'brave': 'https://brave.com/wp-content/themes/brave-2019-static/assets/images/brave-logo.svg',
+      'rainbow': 'https://avatars.githubusercontent.com/u/48574949?s=200&v=4',
+      'enkrypt': 'https://enkrypt.com/favicon.ico',
+      'injected': 'https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg',
+      'trust': 'https://trustwallet.com/assets/images/media/assets/trust_platform.svg',
+      'walletconnect': 'https://avatars.githubusercontent.com/u/37784886?s=200&v=4'
     }
     
     // Try exact match first (both normalized and original)
     if (walletLogos[connectorName]) {
-      console.log('Found exact match for original name:', connectorName)
       iconCache.current[normalizedName] = walletLogos[connectorName]
       return walletLogos[connectorName]
     }
     
     if (walletLogos[normalizedName]) {
-      console.log('Found exact match for normalized name:', normalizedName)
       iconCache.current[normalizedName] = walletLogos[normalizedName]
       return walletLogos[normalizedName]
     }
@@ -127,7 +122,6 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
       }
     }
     
-    console.log('No logo found for:', connectorName)
     return null
   }
 
@@ -183,15 +177,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 return nameIndex === index
               })
               .filter((connector) => {
-                // Filter out connectors that might be problematic
-                const name = connector.name.toLowerCase()
-                // Keep all connectors but log them for debugging
-                console.log('Connector details:', {
-                  name: connector.name,
-                  uid: connector.uid,
-                  type: connector.type,
-                  id: connector.id
-                })
+                // Keep all connectors
                 return true
               })
               .sort((a, b) => {
