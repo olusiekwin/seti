@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { AlertTriangle, Globe, Shield, X } from 'lucide-react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface GeographicalRestrictionModalProps {
   isOpen: boolean
@@ -13,6 +14,9 @@ interface GeographicalRestrictionModalProps {
 export function GeographicalRestrictionModal({ isOpen, onAccept, onDecline }: GeographicalRestrictionModalProps) {
   const [hasRead, setHasRead] = useState(false)
   const [hasAccepted, setHasAccepted] = useState(false)
+
+  // Lock body scroll when modal is open
+  useScrollLock(isOpen)
 
   if (!isOpen) return null
 
@@ -27,12 +31,12 @@ export function GeographicalRestrictionModal({ isOpen, onAccept, onDecline }: Ge
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
       
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-2xl mx-4">
+      <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <Card className="bg-background/95 backdrop-blur-md border-2 border-orange-500/20 shadow-2xl">
           <CardHeader className="text-center pb-4">
             <div className="flex items-center justify-center gap-3 mb-4">

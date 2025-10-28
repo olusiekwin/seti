@@ -19,6 +19,7 @@ import { type Market, calculatePrices, formatVolume } from '@/types/contract'
 import { MarketChart } from './MarketChart'
 import { useCountdown } from '@/hooks/useCountdown'
 import { useFavoritesBackend } from '@/hooks/useFavoritesBackend'
+import { useScrollLock } from '@/hooks/useScrollLock'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 
 interface MarketDetailsSidebarProps {
@@ -32,6 +33,9 @@ export function MarketDetailsSidebar({ isOpen, onClose, market }: MarketDetailsS
   const [isAnimating, setIsAnimating] = useState(false)
   const [selectedOutcome, setSelectedOutcome] = useState<'YES' | 'NO' | null>(null)
   const { isFavorite, toggleFavorite } = useFavoritesBackend()
+  
+  // Lock body scroll when sidebar is open
+  useScrollLock(isOpen)
   
   // Safe default values to ensure consistent hook calls
   const safeEndTime = market?.end_time || 0

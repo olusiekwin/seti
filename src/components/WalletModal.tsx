@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { useConnect } from 'wagmi'
 import { Wallet, X } from 'lucide-react'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -11,6 +12,9 @@ interface WalletModalProps {
 export function WalletModal({ isOpen, onClose }: WalletModalProps) {
   const { connect, connectors, isPending } = useConnect()
   const [connectingWallet, setConnectingWallet] = useState<string | null>(null)
+  
+  // Lock body scroll when modal is open
+  useScrollLock(isOpen)
 
   // Debug: Log available connectors (remove in production)
   // console.log('Available connectors:', connectors.map(c => ({ name: c.name, uid: c.uid })))

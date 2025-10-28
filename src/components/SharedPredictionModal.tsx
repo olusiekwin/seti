@@ -12,6 +12,7 @@ import { usePrediction, savePredictions, getPredictions } from "@/hooks/usePredi
 import type { PredictionReceipt } from "@/hooks/usePredictionModal"
 import { useWalletConnection } from "@/hooks/useWalletConnection"
 import { useContract } from "@/hooks/useContract"
+import { useScrollLock } from "@/hooks/useScrollLock"
 import { PredictionTracker } from "./PredictionTracker"
 
 interface SharedPredictionModalProps {
@@ -26,6 +27,9 @@ export function SharedPredictionModal({ isOpen, onClose, market, outcome, onShow
   const { isConnected } = useWalletConnection()
   const { placePrediction, isLoading, error } = usePrediction()
   const { placeBet, isLoading: contractLoading, error: contractError } = useContract()
+  
+  // Lock body scroll when modal is open
+  useScrollLock(isOpen)
   
   const isSubmitting = isLoading || contractLoading
   const submitError = error || contractError

@@ -3,6 +3,7 @@ import { X, Receipt, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, Copy
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useScrollLock } from '@/hooks/useScrollLock'
 
 interface PredictionSlipData {
   id: string
@@ -29,6 +30,9 @@ interface PredictionSlipSidebarProps {
 }
 
 export function PredictionSlipSidebar({ isOpen, onClose, slipData }: PredictionSlipSidebarProps) {
+  // Lock body scroll when sidebar is open
+  useScrollLock(isOpen)
+  
   if (!isOpen || !slipData) return null
 
   const getStatusIcon = (status: string, outcome?: string, winningOutcome?: string) => {
