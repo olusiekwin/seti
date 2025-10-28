@@ -139,8 +139,8 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
         onClick={onClose}
       />
       
-      {/* Right Sidebar */}
-      <div className="w-[400px] bg-background border-l shadow-xl overflow-hidden flex flex-col">
+      {/* Right Sidebar - Takes up half the page on desktop, full width on mobile */}
+      <div className="w-full sm:w-1/2 max-w-lg min-w-[400px] bg-background border-l shadow-xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center gap-2">
