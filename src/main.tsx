@@ -20,6 +20,8 @@ console.error = (...args) => {
     message.includes('Failed to fetch') ||
     message.includes('ERR_BLOCKED_BY_CLIENT') ||
     message.includes('cca-lite.coinbase.com') ||
+    message.includes('coinbase.com/amp') ||
+    message.includes('coinbase.com/metrics') ||
     message.includes('chrome.runtime.sendMessage') ||
     message.includes('Extension ID') ||
     message.includes('inpage.js') ||
@@ -225,8 +227,11 @@ function OnchainKitWrapper({ children }: { children: React.ReactNode }) {
             preference: 'all',
             // Reduce wallet conflicts
           },
-          // Disable analytics to reduce conflicts
+          // Completely disable analytics
           analytics: false,
+          features: {
+            analytics: false,
+          }
         }}
       >
         {children}
@@ -245,6 +250,11 @@ function OnchainKitWrapper({ children }: { children: React.ReactNode }) {
           },
           wallet: { 
             display: 'modal'
+          },
+          // Disable analytics in fallback config too
+          analytics: false,
+          features: {
+            analytics: false,
           }
         }}
       >
