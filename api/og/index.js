@@ -5,6 +5,11 @@
 
 const { ImageResponse } = require('@vercel/og');
 
+// Configure runtime for Vercel
+exports.config = {
+  runtime: 'nodejs',
+};
+
 module.exports = async function handler(req, res) {
   try {
     return new ImageResponse(
